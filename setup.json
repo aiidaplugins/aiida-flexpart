@@ -3,7 +3,7 @@
     "author": "The AiiDA Team",
     "author_email": "aliaksandr.yakutovich@empa.ch",
     "description": "AiiDA plugin for the FLEXPART code (simulation of atmospheric transport processes).",
-    "url": "https://github.com/yakutovicha/aiida-flexpart",
+    "url": "https://github.com/aiidaplugins/aiida-flexpart",
     "license": "MIT",
     "classifiers": [
         "Programming Language :: Python",
