@@ -10,10 +10,10 @@ from aiida.plugins import CalculationFactory
 from aiida.common import exceptions
 from aiida.orm import SinglefileData
 
-DiffCalculation = CalculationFactory('flexpart')
+FlexpartCalculation = CalculationFactory('flexpart')
 
 
-class DiffParser(Parser):
+class FlexpartParser(Parser):
     """
     Parser class for parsing output of calculation.
     """
@@ -22,14 +22,14 @@ class DiffParser(Parser):
         """
         Initialize Parser instance
 
-        Checks that the ProcessNode being passed was produced by a DiffCalculation.
+        Checks that the ProcessNode being passed was produced by a FlexpartCalculation.
 
         :param node: ProcessNode of calculation
         :param type node: :class:`aiida.orm.ProcessNode`
         """
         super().__init__(node)
-        if not issubclass(node.process_class, DiffCalculation):
-            raise exceptions.ParsingError('Can only parse DiffCalculation')
+        if not issubclass(node.process_class, FlexpartCalculation):
+            raise exceptions.ParsingError('Can only parse FlexpartCalculation')
 
     def parse(self, **kwargs):
         """

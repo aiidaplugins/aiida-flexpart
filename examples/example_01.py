@@ -4,40 +4,42 @@
 
 Usage: ./example_01.py
 """
-from os import path
+from pathlib import Path
 import click
-from aiida import cmdline, engine
+from aiida import cmdline, engine, orm
 from aiida.plugins import DataFactory, CalculationFactory
 from aiida_flexpart import helpers
 
-INPUT_DIR = path.join(path.dirname(path.realpath(__file__)), 'input_files')
+INPUT_DIR = Path(__file__).resolve().parent / 'input_files'
 
 def test_run(flexpart_code):
     """Run a calculation on the localhost computer.
 
     Uses test helpers to create AiiDA Code on the fly.
     """
-    if not flexpart_code:
-        # get code
-        computer = helpers.get_computer()
-        flexpart_code = helpers.get_code(entry_point='flexpart', computer=computer)
 
     # Prepare input parameters
-    DiffParameters = DataFactory('flexpart')  
-    parameters = DiffParameters({'ignore-case': True})
 
     SinglefileData = DataFactory('singlefile')
-    file1 = SinglefileData(
-        file=path.join(INPUT_DIR, 'file1.txt'))
-    file2 = SinglefileData(
-        file=path.join(INPUT_DIR, 'file2.txt'))
+    outgrid = SinglefileData(
+        file=INPUT_DIR/'OUTGRID')
+    outgrid_nest = SinglefileData(
+        file=INPUT_DIR/'OUTGRID_NEST')
+    releases = SinglefileData(
+        file=INPUT_DIR/'RELEASES')
+    model_settings = SinglefileData(
+        file=INPUT_DIR/'COMMAND')
+    age_classes = SinglefileData(
+        file=INPUT_DIR/'AGECLASSES')
 
     # set up calculation
     inputs = {
         'code': flexpart_code,
-        'parameters': parameters,
-        'file1': file1,
-        'file2': file2,
+        'outgrid': outgrid,
+        'outgrid_nest': outgrid_nest,
+        'releases': releases,
+        'model_settings': model_settings,
+        'age_classes': age_classes,
         'metadata': {
             'description': 'Test job submission with the aiida_flexpart plugin',
         },
@@ -47,9 +49,6 @@ def test_run(flexpart_code):
     # from aiida.engine import submit
     # future = submit(CalculationFactory('flexpart'), **inputs)
     result = engine.run(CalculationFactory('flexpart'), **inputs)
-
-    computed_diff = result['flexpart'].get_content()
-    print('Computed diff between files: \n{}'.format(computed_diff))
 
 
 @click.command()

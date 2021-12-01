@@ -4,20 +4,14 @@ Calculations provided by aiida_flexpart.
 
 Register calculations via the "aiida.calculations" entry point in setup.json.
 """
+
+from aiida import orm
 from aiida.common import datastructures
 from aiida.engine import CalcJob
-from aiida.orm import SinglefileData
 from aiida.plugins import DataFactory
 
-DiffParameters = DataFactory('flexpart')
-
-
-class DiffCalculation(CalcJob):
-    """
-    AiiDA calculation plugin wrapping the diff executable.
-
-    Simple AiiDA plugin wrapper for 'diffing' two files.
-    """
+class FlexpartCalculation(CalcJob):
+    """AiiDA calculation plugin wrapping the FLEXPART executable."""
 
     @classmethod
     def define(cls, spec):
@@ -33,13 +27,16 @@ class DiffCalculation(CalcJob):
         spec.inputs['metadata']['options']['parser_name'].default = 'flexpart'
 
         # new ports
-        spec.input('metadata.options.output_filename', valid_type=str, default='patch.diff')
-        spec.input('parameters', valid_type=DiffParameters, help='Command line parameters for diff')
-        spec.input('file1', valid_type=SinglefileData, help='First file to be compared.')
-        spec.input('file2', valid_type=SinglefileData, help='Second file to be compared.')
-        spec.output('flexpart', valid_type=SinglefileData, help='diff between file1 and file2.')
+        spec.input('metadata.options.output_filename', valid_type=str, default='aiida.out')
+        spec.input('outgrid', valid_type=orm.SinglefileData, help='Input file for the Lagrangian particle dispersion model FLEXPART.')
+        spec.input('outgrid_nest', valid_type=orm.SinglefileData, help='Input file for the Lagrangian particle dispersion model FLEXPART. Nested output grid.')
+        spec.input('releases', valid_type=orm.SinglefileData, help='Input file for the Lagrangian particle dispersion model FLEXPART.')
+        spec.input('model_settings', valid_type=orm.SinglefileData, help='Command line parameters for diff')
+        spec.input('age_classes', valid_type=orm.SinglefileData, help='Command line parameters for diff')
 
+        spec.output('output_parameters', valid_type=orm.Dict, required=True, help="The results of a calculation")
         spec.exit_code(300, 'ERROR_MISSING_OUTPUT_FILES', message='Calculation did not produce all expected output files.')
+        spec.default_output_node = 'output_parameters'
 
 
     def prepare_for_submission(self, folder):
@@ -51,9 +48,12 @@ class DiffCalculation(CalcJob):
         :return: `aiida.common.datastructures.CalcInfo` instance
         """
         codeinfo = datastructures.CodeInfo()
-        codeinfo.cmdline_params = self.inputs.parameters.cmdline_params(
-            file1_name=self.inputs.file1.filename,
-            file2_name=self.inputs.file2.filename)
+        codeinfo.cmdline_params = [
+            './', # Folder containing the inputs.
+            './', # Folder containing the outputs.
+            '/scratch/snx3000/yaa/FP2AiiDA/meteo/cosmo7/', # Large data input folder
+            '/scratch/snx3000/yaa/FP2AiiDA/meteo/cosmo7/AVAILABLE', # File that lists all the individual input files that are available and assigns them a date
+        ]
         codeinfo.code_uuid = self.inputs.code.uuid
         codeinfo.stdout_name = self.metadata.options.output_filename
         codeinfo.withmpi = self.inputs.metadata.options.withmpi
@@ -62,9 +62,13 @@ class DiffCalculation(CalcJob):
         calcinfo = datastructures.CalcInfo()
         calcinfo.codes_info = [codeinfo]
         calcinfo.local_copy_list = [
-            (self.inputs.file1.uuid, self.inputs.file1.filename, self.inputs.file1.filename),
-            (self.inputs.file2.uuid, self.inputs.file2.filename, self.inputs.file2.filename),
+            (self.inputs.outgrid.uuid, self.inputs.outgrid.filename, self.inputs.outgrid.filename),
+            (self.inputs.outgrid_nest.uuid, self.inputs.outgrid_nest.filename, self.inputs.outgrid_nest.filename),
+            (self.inputs.releases.uuid, self.inputs.releases.filename, self.inputs.releases.filename),
+            (self.inputs.model_settings.uuid, self.inputs.model_settings.filename, self.inputs.model_settings.filename),
+            (self.inputs.age_classes.uuid, self.inputs.age_classes.filename, self.inputs.age_classes.filename),
+
         ]
-        calcinfo.retrieve_list = [self.metadata.options.output_filename]
+        calcinfo.retrieve_list = ['grid_time_*.nc']
 
         return calcinfo

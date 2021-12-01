@@ -14,17 +14,11 @@
     ],
     "version": "0.1.0a0",
     "entry_points": {
-        "aiida.data": [
-            "flexpart = aiida_flexpart.data:DiffParameters"
-        ],
         "aiida.calculations": [
-            "flexpart = aiida_flexpart.calculations:DiffCalculation"
+            "flexpart = aiida_flexpart.calculations:FlexpartCalculation"
         ],
         "aiida.parsers": [
-            "flexpart = aiida_flexpart.parsers:DiffParser"
-        ],
-        "aiida.cmdline.data": [
-            "flexpart = aiida_flexpart.cli:data_cli"
+            "flexpart = aiida_flexpart.parsers:FlexpartParser"
         ]
     },
     "include_package_data": true,
