@@ -9,6 +9,7 @@ from aiida import orm
 from aiida.common import datastructures
 from aiida.engine import CalcJob
 from aiida.plugins import DataFactory
+from aiida_flexpart.utils import convert_input_to_namelist_entry
 
 class FlexpartCosmoCalculation(CalcJob):
     """AiiDA calculation plugin wrapping the FLEXPART executable."""
@@ -34,7 +35,7 @@ class FlexpartCosmoCalculation(CalcJob):
         spec.input('releases', valid_type=orm.SinglefileData, help='Input file for the Lagrangian particle dispersion model FLEXPART.')
         spec.input('model_settings', valid_type=orm.SinglefileData, help='#TODO')
         spec.input('age_classes', valid_type=orm.SinglefileData, help='#TODO')
-        spec.input('input_phy',  valid_type=orm.SinglefileData, help='#TODO')
+        spec.input('input_phy',  valid_type=orm.Dict, help='#TODO')
         spec.input('species', valid_type=orm.RemoteData, help='#TODO')
 
         spec.input_namespace('land_use', valid_type=orm.RemoteData, required=False, dynamic=True, help="#TODO")
@@ -72,9 +73,14 @@ class FlexpartCosmoCalculation(CalcJob):
             (self.inputs.releases.uuid, self.inputs.releases.filename, self.inputs.releases.filename),
             (self.inputs.model_settings.uuid, self.inputs.model_settings.filename, self.inputs.model_settings.filename),
             (self.inputs.age_classes.uuid, self.inputs.age_classes.filename, self.inputs.age_classes.filename),
-            (self.inputs.input_phy.uuid, self.inputs.input_phy.filename, self.inputs.input_phy.filename),
-
         ]
+        # Convert input_phy dictionary to the INPUT_PHY input file
+        with folder.open('INPUT_PHY', 'w') as infile:
+            infile.write('&parphy\n')
+            for key, value in self.inputs.input_phy.get_dict().items():
+                infile.write(convert_input_to_namelist_entry(key, value))
+            infile.write('/\n')
+
         calcinfo.remote_symlink_list = []
         calcinfo.remote_symlink_list.append((self.inputs.species.computer.uuid, self.inputs.species.get_remote_path(), 'SPECIES'))
 

@@ -31,8 +31,21 @@ def test_run(flexpart_code):
         file=INPUT_DIR/'COMMAND')
     age_classes = SinglefileData(
         file=INPUT_DIR/'AGECLASSES')
-    input_phy = SinglefileData(file=INPUT_DIR/'INPUT_PHY')
 
+
+    input_phy = orm.Dict(dict={
+        'use2mTemperatures': False,
+        'useLocalHmix': True,
+        'localWadjust': False,
+        'turbmesoscale': 0.0,
+        'd_trop': 50.0,
+        'd_strat': 0.5,
+        'hmixmin': 50.0,
+        'hmixmax': 4500.0,
+    }
+    )
+
+    # Links to the remote files/folders.
     glc = orm.RemoteData(remote_path='/users/yaa/resources/flexpart/GLC2000', computer=flexpart_code.computer)
     species = orm.RemoteData(remote_path='/users/yaa/resources/flexpart/SPECIES', computer=flexpart_code.computer)
     surfdata = orm.RemoteData(remote_path='/users/yaa/resources/flexpart/surfdata.t', computer=flexpart_code.computer)
