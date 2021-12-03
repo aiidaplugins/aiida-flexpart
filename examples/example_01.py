@@ -32,6 +32,11 @@ def test_run(flexpart_code):
     age_classes = SinglefileData(
         file=INPUT_DIR/'AGECLASSES')
 
+    glc = orm.RemoteData(remote_path='/users/yaa/resources/flexpart/GLC2000', computer=flexpart_code.computer)
+    species = orm.RemoteData(remote_path='/users/yaa/resources/flexpart/SPECIES', computer=flexpart_code.computer)
+    surfdata = orm.RemoteData(remote_path='/users/yaa/resources/flexpart/surfdata.t', computer=flexpart_code.computer)
+    surfdepo = orm.RemoteData(remote_path='/users/yaa/resources/flexpart/surfdepo.t', computer=flexpart_code.computer)
+
     # set up calculation
     inputs = {
         'code': flexpart_code,
@@ -40,6 +45,10 @@ def test_run(flexpart_code):
         'releases': releases,
         'model_settings': model_settings,
         'age_classes': age_classes,
+        'glc': glc,
+        'species': species,
+        'surfdata': surfdata,
+        'surfdepo': surfdepo,
         'metadata': {
             'description': 'Test job submission with the aiida_flexpart plugin',
         },

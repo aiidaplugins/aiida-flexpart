@@ -33,6 +33,10 @@ class FlexpartCalculation(CalcJob):
         spec.input('releases', valid_type=orm.SinglefileData, help='Input file for the Lagrangian particle dispersion model FLEXPART.')
         spec.input('model_settings', valid_type=orm.SinglefileData, help='Command line parameters for diff')
         spec.input('age_classes', valid_type=orm.SinglefileData, help='Command line parameters for diff')
+        spec.input('glc', valid_type=orm.RemoteData, help='#TODO')
+        spec.input('species', valid_type=orm.RemoteData, help='#TODO')
+        spec.input('surfdata', valid_type=orm.RemoteData, help='#TODO')
+        spec.input('surfdepo', valid_type=orm.RemoteData, help='#TODO')
 
         spec.output('output_parameters', valid_type=orm.Dict, required=True, help="The results of a calculation")
         spec.exit_code(300, 'ERROR_MISSING_OUTPUT_FILES', message='Calculation did not produce all expected output files.')
@@ -69,6 +73,13 @@ class FlexpartCalculation(CalcJob):
             (self.inputs.age_classes.uuid, self.inputs.age_classes.filename, self.inputs.age_classes.filename),
 
         ]
+        calcinfo.remote_symlink_list = [
+            (self.inputs.glc.computer.uuid, self.inputs.glc.get_remote_path(), 'GLC2000'),
+            (self.inputs.species.computer.uuid, self.inputs.species.get_remote_path(), 'SPECIES'),
+            (self.inputs.surfdata.computer.uuid, self.inputs.surfdata.get_remote_path(), 'surfdata.t'),
+            (self.inputs.surfdepo.computer.uuid, self.inputs.surfdepo.get_remote_path(), 'surfdepo.t'),
+            ]
+
         calcinfo.retrieve_list = ['grid_time_*.nc']
 
         return calcinfo
