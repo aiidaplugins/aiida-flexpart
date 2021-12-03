@@ -10,7 +10,7 @@ from aiida.plugins import CalculationFactory
 from aiida.common import exceptions
 from aiida.orm import SinglefileData
 
-FlexpartCalculation = CalculationFactory('flexpart')
+FlexpartCalculation = CalculationFactory('flexpart.cosmo')
 
 
 class FlexpartCosmoParser(Parser):
