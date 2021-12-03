@@ -16,7 +16,7 @@ from aiida.common.exceptions import NotExistent
 LOCALHOST_NAME = 'localhost-test'
 
 executables = {
-    'flexpart': 'diff',
+    'flexpart.cosmo': 'FLEXPART_master_daint_GNUoptompncdfout',
 }
 
 
