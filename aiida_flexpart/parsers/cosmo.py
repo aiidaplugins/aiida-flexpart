@@ -13,7 +13,7 @@ from aiida.orm import SinglefileData
 FlexpartCalculation = CalculationFactory('flexpart')
 
 
-class FlexpartParser(Parser):
+class FlexpartCosmoParser(Parser):
     """
     Parser class for parsing output of calculation.
     """

@@ -1,7 +1,7 @@
 ---
 label: flexpart
 description: ""  
-input_plugin: flexpart
+input_plugin: flexpart.cosmo
 on_computer: true
 computer: daint
 remote_abs_path:  /scratch/snx3000/yaa/FP2AiiDA/bin/FLEXPART_master_daint_GNUoptompncdfout

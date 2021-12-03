@@ -10,7 +10,7 @@ from aiida.common import datastructures
 from aiida.engine import CalcJob
 from aiida.plugins import DataFactory
 
-class FlexpartCalculation(CalcJob):
+class FlexpartCosmoCalculation(CalcJob):
     """AiiDA calculation plugin wrapping the FLEXPART executable."""
 
     @classmethod
@@ -24,7 +24,8 @@ class FlexpartCalculation(CalcJob):
             'num_machines': 1,
             'num_mpiprocs_per_machine': 1,
         }
-        spec.inputs['metadata']['options']['parser_name'].default = 'flexpart'
+
+        spec.input('metadata.options.parser_name', valid_type=str, default='flexpart.cosmo')
 
         # new ports
         spec.input('metadata.options.output_filename', valid_type=str, default='aiida.out')

@@ -62,7 +62,7 @@ def test_run(flexpart_code):
     # Note: in order to submit your calculation to the aiida daemon, do:
     # from aiida.engine import submit
     # future = submit(CalculationFactory('flexpart'), **inputs)
-    result = engine.run(CalculationFactory('flexpart'), **inputs)
+    result = engine.run(CalculationFactory('flexpart.cosmo'), **inputs)
 
 
 @click.command()

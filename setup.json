@@ -15,10 +15,10 @@
     "version": "0.1.0a0",
     "entry_points": {
         "aiida.calculations": [
-            "flexpart = aiida_flexpart.calculations:FlexpartCalculation"
+            "flexpart.cosmo = aiida_flexpart.calculations.cosmo:FlexpartCosmoCalculation"
         ],
         "aiida.parsers": [
-            "flexpart = aiida_flexpart.parsers:FlexpartParser"
+            "flexpart.cosmo = aiida_flexpart.parsers.cosmo:FlexpartCosmoParser"
         ]
     },
     "include_package_data": true,
