@@ -31,6 +31,7 @@ def test_run(flexpart_code):
         file=INPUT_DIR/'COMMAND')
     age_classes = SinglefileData(
         file=INPUT_DIR/'AGECLASSES')
+    input_phy = SinglefileData(file=INPUT_DIR/'INPUT_PHY')
 
     glc = orm.RemoteData(remote_path='/users/yaa/resources/flexpart/GLC2000', computer=flexpart_code.computer)
     species = orm.RemoteData(remote_path='/users/yaa/resources/flexpart/SPECIES', computer=flexpart_code.computer)
@@ -44,11 +45,15 @@ def test_run(flexpart_code):
         'outgrid_nest': outgrid_nest,
         'releases': releases,
         'model_settings': model_settings,
+        'input_phy': input_phy,
         'age_classes': age_classes,
-        'glc': glc,
         'species': species,
-        'surfdata': surfdata,
-        'surfdepo': surfdepo,
+        'land_use':{
+            'glc': glc,
+            'surfdata': surfdata,
+            'surfdepo': surfdepo,
+        },
+
         'metadata': {
             'description': 'Test job submission with the aiida_flexpart plugin',
         },

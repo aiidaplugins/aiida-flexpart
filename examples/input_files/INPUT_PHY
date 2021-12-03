@@ -1,0 +1,10 @@
+&parphy
+  use2mTemperatures = .false. ,
+  useLocalHmix = .true. ,
+  localWadjust = .false. ,
+  turbmesoscale = 0.0 , 
+  d_trop = 50.,
+  d_strat = 0.5 ,
+  hmixmin = 50. ,
+  hmixmax = 4500.,
+/

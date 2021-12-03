@@ -31,16 +31,16 @@ class FlexpartCalculation(CalcJob):
         spec.input('outgrid', valid_type=orm.SinglefileData, help='Input file for the Lagrangian particle dispersion model FLEXPART.')
         spec.input('outgrid_nest', valid_type=orm.SinglefileData, help='Input file for the Lagrangian particle dispersion model FLEXPART. Nested output grid.')
         spec.input('releases', valid_type=orm.SinglefileData, help='Input file for the Lagrangian particle dispersion model FLEXPART.')
-        spec.input('model_settings', valid_type=orm.SinglefileData, help='Command line parameters for diff')
-        spec.input('age_classes', valid_type=orm.SinglefileData, help='Command line parameters for diff')
-        spec.input('glc', valid_type=orm.RemoteData, help='#TODO')
+        spec.input('model_settings', valid_type=orm.SinglefileData, help='#TODO')
+        spec.input('age_classes', valid_type=orm.SinglefileData, help='#TODO')
+        spec.input('input_phy',  valid_type=orm.SinglefileData, help='#TODO')
         spec.input('species', valid_type=orm.RemoteData, help='#TODO')
-        spec.input('surfdata', valid_type=orm.RemoteData, help='#TODO')
-        spec.input('surfdepo', valid_type=orm.RemoteData, help='#TODO')
 
-        spec.output('output_parameters', valid_type=orm.Dict, required=True, help="The results of a calculation")
+        spec.input_namespace('land_use', valid_type=orm.RemoteData, required=False, dynamic=True, help="#TODO")
+
+        spec.output('output_file', valid_type=orm.SinglefileData, required=True, help="The output file of a calculation")
         spec.exit_code(300, 'ERROR_MISSING_OUTPUT_FILES', message='Calculation did not produce all expected output files.')
-        spec.default_output_node = 'output_parameters'
+        #spec.default_output_node = 'output_file'
 
 
     def prepare_for_submission(self, folder):
@@ -71,15 +71,19 @@ class FlexpartCalculation(CalcJob):
             (self.inputs.releases.uuid, self.inputs.releases.filename, self.inputs.releases.filename),
             (self.inputs.model_settings.uuid, self.inputs.model_settings.filename, self.inputs.model_settings.filename),
             (self.inputs.age_classes.uuid, self.inputs.age_classes.filename, self.inputs.age_classes.filename),
+            (self.inputs.input_phy.uuid, self.inputs.input_phy.filename, self.inputs.input_phy.filename),
 
         ]
-        calcinfo.remote_symlink_list = [
-            (self.inputs.glc.computer.uuid, self.inputs.glc.get_remote_path(), 'GLC2000'),
-            (self.inputs.species.computer.uuid, self.inputs.species.get_remote_path(), 'SPECIES'),
-            (self.inputs.surfdata.computer.uuid, self.inputs.surfdata.get_remote_path(), 'surfdata.t'),
-            (self.inputs.surfdepo.computer.uuid, self.inputs.surfdepo.get_remote_path(), 'surfdepo.t'),
-            ]
+        calcinfo.remote_symlink_list = []
+        calcinfo.remote_symlink_list.append((self.inputs.species.computer.uuid, self.inputs.species.get_remote_path(), 'SPECIES'))
 
-        calcinfo.retrieve_list = ['grid_time_*.nc']
+        # Dealing with land_use input namespace.
+        for name, obj in self.inputs.land_use.items():
+            computer_uuid = obj.computer.uuid
+            file_path = obj.get_remote_path()
+            file_name = file_path.split('/')[-1]
+            calcinfo.remote_symlink_list.append((computer_uuid, file_path, file_name))
+
+        calcinfo.retrieve_list = ['grid_time_*.nc', 'aiida.out']
 
         return calcinfo

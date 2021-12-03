@@ -52,6 +52,6 @@ class FlexpartParser(Parser):
         self.logger.info("Parsing '{}'".format(output_filename))
         with self.retrieved.open(output_filename, 'rb') as handle:
             output_node = SinglefileData(file=handle)
-        self.out('flexpart', output_node)
+        self.out('output_file', output_node)
 
         return ExitCode(0)
