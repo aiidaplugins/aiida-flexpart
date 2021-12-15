@@ -29,7 +29,8 @@
         "sqlalchemy<1.4",
         "six",
         "psycopg2-binary<2.9",
-        "voluptuous"
+        "voluptuous",
+        "jinja2"
     ],
     "extras_require": {
         "testing": [

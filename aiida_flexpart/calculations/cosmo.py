@@ -4,6 +4,9 @@ Calculations provided by aiida_flexpart.
 
 Register calculations via the "aiida.calculations" entry point in setup.json.
 """
+import importlib
+import pathlib
+import jinja2
 
 from aiida import orm
 from aiida.common import datastructures
@@ -29,11 +32,15 @@ class FlexpartCosmoCalculation(CalcJob):
         spec.input('metadata.options.parser_name', valid_type=str, default='flexpart.cosmo')
 
         # new ports
-        spec.input('metadata.options.output_filename', valid_type=str, default='aiida.out')
+        spec.input_namespace('model_settings')
+        spec.input('model_settings.releases_settings', valid_type=orm.Dict, required=True)
+        spec.input('model_settings.releases_times', valid_type=orm.Dict, required=True)
+        spec.input('model_settings.command', valid_type=orm.Dict, required=True)
+        spec.input('metadata.options.output_filename', valid_type=str, default='aiida.out', required=True)
         spec.input('outgrid', valid_type=orm.SinglefileData, help='Input file for the Lagrangian particle dispersion model FLEXPART.')
         spec.input('outgrid_nest', valid_type=orm.SinglefileData, help='Input file for the Lagrangian particle dispersion model FLEXPART. Nested output grid.')
         spec.input('releases', valid_type=orm.SinglefileData, help='Input file for the Lagrangian particle dispersion model FLEXPART.')
-        spec.input('model_settings', valid_type=orm.SinglefileData, help='#TODO')
+        #spec.input('model_settings', valid_type=orm.SinglefileData, help='#TODO')
         spec.input('age_classes', valid_type=orm.SinglefileData, help='#TODO')
         spec.input('input_phy',  valid_type=orm.Dict, help='#TODO')
         spec.input('species', valid_type=orm.RemoteData, help='#TODO')
@@ -71,7 +78,6 @@ class FlexpartCosmoCalculation(CalcJob):
             (self.inputs.outgrid.uuid, self.inputs.outgrid.filename, self.inputs.outgrid.filename),
             (self.inputs.outgrid_nest.uuid, self.inputs.outgrid_nest.filename, self.inputs.outgrid_nest.filename),
             (self.inputs.releases.uuid, self.inputs.releases.filename, self.inputs.releases.filename),
-            (self.inputs.model_settings.uuid, self.inputs.model_settings.filename, self.inputs.model_settings.filename),
             (self.inputs.age_classes.uuid, self.inputs.age_classes.filename, self.inputs.age_classes.filename),
         ]
         # Convert input_phy dictionary to the INPUT_PHY input file
@@ -80,6 +86,14 @@ class FlexpartCosmoCalculation(CalcJob):
             for key, value in self.inputs.input_phy.get_dict().items():
                 infile.write(convert_input_to_namelist_entry(key, value))
             infile.write('/\n')
+        
+        #
+        with folder.open('COMMAND', 'w') as infile:
+            template = jinja2.Template(importlib.resources.read_text("aiida_flexpart.templates", "COMMAND.j2"))
+            infile.write(template.render(command=self.inputs.model_settings.command.get_dict()))
+
+
+
 
         calcinfo.remote_symlink_list = []
         calcinfo.remote_symlink_list.append((self.inputs.species.computer.uuid, self.inputs.species.get_remote_path(), 'SPECIES'))
