@@ -6,29 +6,29 @@
 ********************************************************************************
 
 1.  -                 4X, I1
-    0                 OUTPUT GRID TYPE (COSMO ROTATED OR GEOGRAPHICAL)
+    {{ outgrid.output_grid_type }}                 OUTPUT GRID TYPE (COSMO ROTATED OR GEOGRAPHICAL)
     OUTTYPE           1 for coos provided in rotated system, 0 for geographical
 
 2.  ------.----       4X,F11.4
-         4.96         LONGITUDE OF LOWER LEFT CORNER OF OUTPUT GRID
+    {{ outgrid.longitude_of_output_grid }}        LONGITUDE OF LOWER LEFT CORNER OF OUTPUT GRID
     OUTLONLEFT        (left boundary of the first grid cell - not its centre)
 
 3.  ------.----       4X,F11.4
-        45.48         LATITUDE OF LOWER LEFT CORNER OF OUTPUT GRID
+    {{ outgrid.latitude_of_output_grid }}       LATITUDE OF LOWER LEFT CORNER OF OUTPUT GRID
     OUTLATLOWER       (lower boundary of the first grid cell - not its centre)
 
 4.  -----             4X,I5
-      305             NUMBER OF GRID POINTS IN X DIRECTION (= No. of cells + 1)
+    {{ outgrid.number_of_grid_points_x }}            n NUMBER OF GRID POINTS IN X DIRECTION (= No. of cells + 1)
     NUMXGRID
 
 5.  -----             4X,I5
-      205             NUMBER OF GRID POINTS IN Y DIRECTION (= No. of cells + 1)
+    {{ outgrid.number_of_grid_points_y }}             NUMBER OF GRID POINTS IN Y DIRECTION (= No. of cells + 1)
     NUMYGRID
 
 6.  ------.---        4X,F10.3
-         0.02         GRID DISTANCE IN X DIRECTION
+    {{ outgrid.grid_distance_x }}         GRID DISTANCE IN X DIRECTION
     DXOUTLON
 
 7.  ------.---        4X,F10.3
-         0.015        GRID DISTANCE IN Y DIRECTION
+    {{ outgrid.grid_distance_y }}         GRID DISTANCE IN Y DIRECTION
     DYOUTLAT

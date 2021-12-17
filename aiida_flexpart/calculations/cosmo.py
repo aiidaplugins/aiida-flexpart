@@ -36,13 +36,12 @@ class FlexpartCosmoCalculation(CalcJob):
         spec.input('model_settings.releases_settings', valid_type=orm.Dict, required=True)
         spec.input('model_settings.releases_times', valid_type=orm.Dict, required=True)
         spec.input('model_settings.command', valid_type=orm.Dict, required=True)
+        spec.input('model_settings.input_phy',  valid_type=orm.Dict, help='#TODO')
         spec.input('metadata.options.output_filename', valid_type=str, default='aiida.out', required=True)
-        spec.input('outgrid', valid_type=orm.SinglefileData, help='Input file for the Lagrangian particle dispersion model FLEXPART.')
-        spec.input('outgrid_nest', valid_type=orm.SinglefileData, help='Input file for the Lagrangian particle dispersion model FLEXPART. Nested output grid.')
+        spec.input('outgrid', valid_type=orm.Dict, help='Input file for the Lagrangian particle dispersion model FLEXPART.')
+        spec.input('outgrid_nest', valid_type=orm.Dict, required=False, help='Input file for the Lagrangian particle dispersion model FLEXPART. Nested output grid.')
         spec.input('releases', valid_type=orm.SinglefileData, help='Input file for the Lagrangian particle dispersion model FLEXPART.')
-        #spec.input('model_settings', valid_type=orm.SinglefileData, help='#TODO')
         spec.input('age_classes', valid_type=orm.SinglefileData, help='#TODO')
-        spec.input('input_phy',  valid_type=orm.Dict, help='#TODO')
         spec.input('species', valid_type=orm.RemoteData, help='#TODO')
 
         spec.input_namespace('land_use', valid_type=orm.RemoteData, required=False, dynamic=True, help="#TODO")
@@ -75,25 +74,31 @@ class FlexpartCosmoCalculation(CalcJob):
         calcinfo = datastructures.CalcInfo()
         calcinfo.codes_info = [codeinfo]
         calcinfo.local_copy_list = [
-            (self.inputs.outgrid.uuid, self.inputs.outgrid.filename, self.inputs.outgrid.filename),
-            (self.inputs.outgrid_nest.uuid, self.inputs.outgrid_nest.filename, self.inputs.outgrid_nest.filename),
             (self.inputs.releases.uuid, self.inputs.releases.filename, self.inputs.releases.filename),
             (self.inputs.age_classes.uuid, self.inputs.age_classes.filename, self.inputs.age_classes.filename),
         ]
         # Convert input_phy dictionary to the INPUT_PHY input file
         with folder.open('INPUT_PHY', 'w') as infile:
             infile.write('&parphy\n')
-            for key, value in self.inputs.input_phy.get_dict().items():
+            for key, value in self.inputs.model_settings.input_phy.get_dict().items():
                 infile.write(convert_input_to_namelist_entry(key, value))
             infile.write('/\n')
         
-        #
+        # Fill in the COMMAND file.
         with folder.open('COMMAND', 'w') as infile:
             template = jinja2.Template(importlib.resources.read_text("aiida_flexpart.templates", "COMMAND.j2"))
             infile.write(template.render(command=self.inputs.model_settings.command.get_dict()))
+        
+        # Fill in the OUTGRID file.
+        with folder.open('OUTGRID', 'w') as infile:
+            template = jinja2.Template(importlib.resources.read_text("aiida_flexpart.templates", "OUTGRID.j2"))
+            infile.write(template.render(outgrid=self.inputs.outgrid.get_dict()))
 
-
-
+        # Fill in the OUTGRID_NEST file if the corresponding dictionary is present.
+        if 'outgrid_nest' in self.inputs:
+            with folder.open('OUTGRID_NEST', 'w') as infile:
+                template = jinja2.Template(importlib.resources.read_text("aiida_flexpart.templates", "OUTGRID_NEST.j2"))
+                infile.write(template.render(outgrid=self.inputs.outgrid_nest.get_dict()))
 
         calcinfo.remote_symlink_list = []
         calcinfo.remote_symlink_list.append((self.inputs.species.computer.uuid, self.inputs.species.get_remote_path(), 'SPECIES'))

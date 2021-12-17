@@ -21,35 +21,10 @@ def test_run(flexpart_code):
     # Prepare input parameters
 
     SinglefileData = DataFactory('singlefile')
-    outgrid = SinglefileData(
-        file=INPUT_DIR/'OUTGRID')
-    outgrid_nest = SinglefileData(
-        file=INPUT_DIR/'OUTGRID_NEST')
     releases = SinglefileData(
         file=INPUT_DIR/'RELEASES')
-    #model_settings = SinglefileData(
-    #    file=INPUT_DIR/'COMMAND')
     age_classes = SinglefileData(
         file=INPUT_DIR/'AGECLASSES')
-
-
-    input_phy = orm.Dict(dict={
-        'use2mTemperatures': False,
-        'useLocalHmix': True,
-        'localWadjust': False,
-        'turbmesoscale': 0.0,
-        'd_trop': 50.0,
-        'd_strat': 0.5,
-        'hmixmin': 50.0,
-        'hmixmax': 4500.0,
-    }
-    )
-
-    # Links to the remote files/folders.
-    glc = orm.RemoteData(remote_path='/users/yaa/resources/flexpart/GLC2000', computer=flexpart_code.computer)
-    species = orm.RemoteData(remote_path='/users/yaa/resources/flexpart/SPECIES', computer=flexpart_code.computer)
-    surfdata = orm.RemoteData(remote_path='/users/yaa/resources/flexpart/surfdata.t', computer=flexpart_code.computer)
-    surfdepo = orm.RemoteData(remote_path='/users/yaa/resources/flexpart/surfdepo.t', computer=flexpart_code.computer)
 
     command = orm.Dict(dict={
         'simulation_direction': -1, # 1 for forward simulation, -1 for backward simulation.
@@ -79,18 +54,56 @@ def test_run(flexpart_code):
         'cosmo_grid_relaxation_zone_width': 50.0, # Width of cosmo grid relaxation zone in km
     })
 
-    # set up calculation
+    input_phy = orm.Dict(dict={
+        'use2mTemperatures': False,
+        'useLocalHmix': True,
+        'localWadjust': False,
+        'turbmesoscale': 0.0,
+        'd_trop': 50.0,
+        'd_strat': 0.5,
+        'hmixmin': 50.0,
+        'hmixmax': 4500.0,
+    })
+
+    outgrid = orm.Dict(dict={
+        'output_grid_type': 0, #  1 for coos provided in rotated system, 0 for geographical.
+        'longitude_of_output_grid': -12.00, # Longitude of lower left corner of output grid (left boundary of the first grid cell - not its centre).
+        'latitude_of_output_grid': 36.00, # Latitude of lower left corner of output grid  (lower boundary of the first grid cell - not its centre).
+        'number_of_grid_points_x': 207, # Number of grid points in x direction (= # of cells + 1).
+        'number_of_grid_points_y': 179, # Number of grid points in y direction (= # of cells + 1).
+        'grid_distance_x': 0.16, # Grid distance in x direction.
+        'grid_distance_y': 0.12, # Grid distance in y direction.
+        'heights_of_levels': [50.0, 100.0, 200.0, 500.0, 15000.0], # List of heights of leves (upper boundary).
+    })
+    outgrid_nest = orm.Dict(dict={
+        'output_grid_type': 0, #  1 for coos provided in rotated system, 0 for geographical.
+        'longitude_of_output_grid': 4.96, # Longitude of lower left corner of output grid (left boundary of the first grid cell - not its centre).
+        'latitude_of_output_grid': 45.48, # Latitude of lower left corner of output grid  (lower boundary of the first grid cell - not its centre).
+        'number_of_grid_points_x': 305, # Number of grid points in x direction (= # of cells + 1).
+        'number_of_grid_points_y': 205, # Number of grid points in y direction (= # of cells + 1).
+        'grid_distance_x': 0.02, # Grid distance in x direction.
+        'grid_distance_y': 0.015, # Grid distance in y direction.
+    })
+
+
+    # Links to the remote files/folders.
+    glc = orm.RemoteData(remote_path='/users/yaa/resources/flexpart/GLC2000', computer=flexpart_code.computer)
+    species = orm.RemoteData(remote_path='/users/yaa/resources/flexpart/SPECIES', computer=flexpart_code.computer)
+    surfdata = orm.RemoteData(remote_path='/users/yaa/resources/flexpart/surfdata.t', computer=flexpart_code.computer)
+    surfdepo = orm.RemoteData(remote_path='/users/yaa/resources/flexpart/surfdepo.t', computer=flexpart_code.computer)
+
+    # Set up calculation.
     inputs = {
+        'code': flexpart_code,
         'model_settings': {
             'releases_settings': orm.Dict(dict={'a':1}),
             'releases_times': orm.Dict(dict={'b':2}),
             'command': command,
+            'input_phy': input_phy,
         },
-        'code': flexpart_code,
         'outgrid': outgrid,
         'outgrid_nest': outgrid_nest,
         'releases': releases,
-        'input_phy': input_phy,
         'age_classes': age_classes,
         'species': species,
         'land_use':{
