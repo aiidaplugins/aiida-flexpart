@@ -7,6 +7,8 @@ Register calculations via the "aiida.calculations" entry point in setup.json.
 import importlib
 import pathlib
 import jinja2
+import datetime
+import yaml
 
 from aiida import orm
 from aiida.common import datastructures
@@ -32,18 +34,17 @@ class FlexpartCosmoCalculation(CalcJob):
         spec.input('metadata.options.parser_name', valid_type=str, default='flexpart.cosmo')
 
         # new ports
+        # Model settings namespace.
         spec.input_namespace('model_settings')
-        spec.input('model_settings.releases_settings', valid_type=orm.Dict, required=True)
-        spec.input('model_settings.releases_times', valid_type=orm.Dict, required=True)
+        spec.input('model_settings.locations', valid_type=orm.List, required=True)
         spec.input('model_settings.command', valid_type=orm.Dict, required=True)
         spec.input('model_settings.input_phy',  valid_type=orm.Dict, help='#TODO')
-        spec.input('metadata.options.output_filename', valid_type=str, default='aiida.out', required=True)
+        
         spec.input('outgrid', valid_type=orm.Dict, help='Input file for the Lagrangian particle dispersion model FLEXPART.')
         spec.input('outgrid_nest', valid_type=orm.Dict, required=False, help='Input file for the Lagrangian particle dispersion model FLEXPART. Nested output grid.')
-        spec.input('releases', valid_type=orm.SinglefileData, help='Input file for the Lagrangian particle dispersion model FLEXPART.')
-        spec.input('age_classes', valid_type=orm.SinglefileData, help='#TODO')
         spec.input('species', valid_type=orm.RemoteData, help='#TODO')
-
+        
+        spec.input('metadata.options.output_filename', valid_type=str, default='aiida.out', required=True)
         spec.input_namespace('land_use', valid_type=orm.RemoteData, required=False, dynamic=True, help="#TODO")
 
         spec.output('output_file', valid_type=orm.SinglefileData, required=True, help="The output file of a calculation")
@@ -73,10 +74,7 @@ class FlexpartCosmoCalculation(CalcJob):
         # Prepare a `CalcInfo` to be returned to the engine
         calcinfo = datastructures.CalcInfo()
         calcinfo.codes_info = [codeinfo]
-        calcinfo.local_copy_list = [
-            (self.inputs.releases.uuid, self.inputs.releases.filename, self.inputs.releases.filename),
-            (self.inputs.age_classes.uuid, self.inputs.age_classes.filename, self.inputs.age_classes.filename),
-        ]
+
         # Convert input_phy dictionary to the INPUT_PHY input file
         with folder.open('INPUT_PHY', 'w') as infile:
             infile.write('&parphy\n')
@@ -84,10 +82,48 @@ class FlexpartCosmoCalculation(CalcJob):
                 infile.write(convert_input_to_namelist_entry(key, value))
             infile.write('/\n')
         
+        
+        # Dealing with simulation times.
+        command_dict = self.inputs.model_settings.command.get_dict()
+        simulation_beginning_date = command_dict.pop('simulation_date')
+        simulation_beginning_date = datetime.datetime.strptime(simulation_beginning_date,'%Y-%m-%d %H:%M:%S')
+        
+        age_class_time = datetime.timedelta(seconds=command_dict.pop('age_class'))
+        release_chunk = datetime.timedelta(seconds=command_dict.pop('release_chunk'))
+        release_duration = datetime.timedelta(seconds=command_dict.pop('release_duration'))
+        
+        simulation_ending_date = simulation_beginning_date + age_class_time + release_duration
+        command_dict['simulation_beginning_date'] = [f'{simulation_beginning_date:%Y%m%d}', f'{simulation_beginning_date:%H%M%S}']
+        command_dict['simulation_ending_date'] = [f'{simulation_ending_date:%Y%m%d}', f'{simulation_ending_date:%H%M%S}']
+
+        # Dealing with locations.
+        locations = self.inputs.model_settings.locations.get_list()
+
+        # Fill in the releases file.
+        with folder.open('RELEASES', 'w') as infile:
+            time_chunks = []
+            current_time = simulation_beginning_date + age_class_time + release_chunk
+            while current_time <= simulation_ending_date:
+                time_chunks.append({
+                    'begin': [f'{current_time-release_chunk:%Y%m%d}', f'{current_time-release_chunk:%H%M%S}'],
+                    'end': [f'{current_time:%Y%m%d}', f'{current_time:%H%M%S}'],
+                })
+                current_time += release_chunk
+            
+            location_data = yaml.safe_load(importlib.resources.read_text("aiida_flexpart.data", "locations.yaml"))
+
+            template = jinja2.Template(importlib.resources.read_text("aiida_flexpart.templates", "RELEASES.j2"))
+            infile.write(template.render(time_chunks=time_chunks, locations=locations, location_data=location_data))
+
+        # Fill in the AGECLASSES file.
+        with folder.open('AGECLASSES', 'w') as infile:
+            template = jinja2.Template(importlib.resources.read_text("aiida_flexpart.templates", "AGECLASSES.j2"))
+            infile.write(template.render(age_class=int(age_class_time.total_seconds())))
+
         # Fill in the COMMAND file.
         with folder.open('COMMAND', 'w') as infile:
             template = jinja2.Template(importlib.resources.read_text("aiida_flexpart.templates", "COMMAND.j2"))
-            infile.write(template.render(command=self.inputs.model_settings.command.get_dict()))
+            infile.write(template.render(command=command_dict))
         
         # Fill in the OUTGRID file.
         with folder.open('OUTGRID', 'w') as infile:

@@ -20,16 +20,12 @@ def test_run(flexpart_code):
 
     # Prepare input parameters
 
-    SinglefileData = DataFactory('singlefile')
-    releases = SinglefileData(
-        file=INPUT_DIR/'RELEASES')
-    age_classes = SinglefileData(
-        file=INPUT_DIR/'AGECLASSES')
-
     command = orm.Dict(dict={
         'simulation_direction': -1, # 1 for forward simulation, -1 for backward simulation.
-        'simulation_beginning_date': [20201231, 000000],  # YYYYMMDD HHMISS beginning date of simulation.
-        'simulation_ending_date': [20210102, 000000],  # YYYYMMDD HHMISS ending date of simulation.
+        'simulation_date': '2020-12-31 00:00:00',  # YYYY-MM-DD HH:MI:SS beginning date of simulation.
+        'age_class': 3600 * 24, # seconds
+        'release_chunk': 3600 * 3, # seconds
+        'release_duration': 3600*24, # seconds
         'output_every_seconds': 10800,  # Output every xxx seconds.
         'time_average_of_output_seconds': 10800, # Time average of output (in seconds).
         'sampling_rate_of_output': 60, # Sampling rate of output (in seconds).
@@ -93,34 +89,28 @@ def test_run(flexpart_code):
     surfdepo = orm.RemoteData(remote_path='/users/yaa/resources/flexpart/surfdepo.t', computer=flexpart_code.computer)
 
     # Set up calculation.
-    inputs = {
-        'code': flexpart_code,
-        'model_settings': {
-            'releases_settings': orm.Dict(dict={'a':1}),
-            'releases_times': orm.Dict(dict={'b':2}),
-            'command': command,
-            'input_phy': input_phy,
-        },
-        'outgrid': outgrid,
-        'outgrid_nest': outgrid_nest,
-        'releases': releases,
-        'age_classes': age_classes,
-        'species': species,
-        'land_use':{
-            'glc': glc,
-            'surfdata': surfdata,
-            'surfdepo': surfdepo,
-        },
+    calc = CalculationFactory('flexpart.cosmo')
+    builder = calc.get_builder()
+    builder.code = flexpart_code
+    builder.model_settings = {
+        'locations': orm.List(list=['TEST_32', 'TEST_200']),
+        'command': command,
+        'input_phy': input_phy,
+        }   
 
-        'metadata': {
-            'description': 'Test job submission with the aiida_flexpart plugin',
-        },
-    }
+    builder.outgrid = outgrid
+    builder.outgrid_nest = outgrid_nest
+    builder.species = species
+    builder.land_use = {
+        'glc': glc,
+        'surfdata': surfdata,
+        'surfdepo': surfdepo,
+        }
 
-    # Note: in order to submit your calculation to the aiida daemon, do:
-    # from aiida.engine import submit
-    # future = submit(CalculationFactory('flexpart'), **inputs)
-    result = engine.run(CalculationFactory('flexpart.cosmo'), **inputs)
+    builder.metadata = {'description': 'Test job submission with the aiida_flexpart plugin'}
+    builder.metadata.dry_run = True
+    builder.metadata.store_provenance = False
+    result = engine.run(builder)
 
 
 @click.command()
