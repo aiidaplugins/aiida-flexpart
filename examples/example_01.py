@@ -108,8 +108,8 @@ def test_run(flexpart_code):
         }
 
     builder.metadata = {'description': 'Test job submission with the aiida_flexpart plugin'}
-    builder.metadata.dry_run = True
-    builder.metadata.store_provenance = False
+    # builder.metadata.dry_run = True
+    # builder.metadata.store_provenance = False
     result = engine.run(builder)
 
 
