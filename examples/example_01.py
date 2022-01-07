@@ -22,7 +22,7 @@ def test_run(flexpart_code):
 
     command = orm.Dict(dict={
         'simulation_direction': -1, # 1 for forward simulation, -1 for backward simulation.
-        'simulation_date': '2020-12-31 00:00:00',  # YYYY-MM-DD HH:MI:SS beginning date of simulation.
+        'simulation_date': '2021-01-02 00:00:00',  # YYYY-MM-DD HH:MI:SS beginning date of simulation.
         'age_class': 3600 * 24, # seconds
         'release_chunk': 3600 * 3, # seconds
         'release_duration': 3600*24, # seconds

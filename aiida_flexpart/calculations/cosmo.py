@@ -85,14 +85,20 @@ class FlexpartCosmoCalculation(CalcJob):
         
         # Dealing with simulation times.
         command_dict = self.inputs.model_settings.command.get_dict()
-        simulation_beginning_date = command_dict.pop('simulation_date')
-        simulation_beginning_date = datetime.datetime.strptime(simulation_beginning_date,'%Y-%m-%d %H:%M:%S')
-        
+        simulation_beginning_date = datetime.datetime.strptime(command_dict.pop('simulation_date'),'%Y-%m-%d %H:%M:%S')
         age_class_time = datetime.timedelta(seconds=command_dict.pop('age_class'))
         release_chunk = datetime.timedelta(seconds=command_dict.pop('release_chunk'))
         release_duration = datetime.timedelta(seconds=command_dict.pop('release_duration'))
-        
-        simulation_ending_date = simulation_beginning_date + age_class_time + release_duration
+        release_beginning_date = simulation_beginning_date
+        release_ending_date = simulation_beginning_date + release_duration * command_dict['simulation_direction']
+        simulation_ending_date = release_ending_date + age_class_time * command_dict['simulation_direction']
+
+        # FLEXPART requires the beginning date to be lower than the ending date.
+        if simulation_beginning_date > simulation_ending_date:
+            simulation_beginning_date, simulation_ending_date = simulation_ending_date, simulation_beginning_date
+        if release_beginning_date > release_ending_date:
+            release_beginning_date, release_ending_date = release_ending_date, release_beginning_date
+
         command_dict['simulation_beginning_date'] = [f'{simulation_beginning_date:%Y%m%d}', f'{simulation_beginning_date:%H%M%S}']
         command_dict['simulation_ending_date'] = [f'{simulation_ending_date:%Y%m%d}', f'{simulation_ending_date:%H%M%S}']
 
@@ -102,8 +108,8 @@ class FlexpartCosmoCalculation(CalcJob):
         # Fill in the releases file.
         with folder.open('RELEASES', 'w') as infile:
             time_chunks = []
-            current_time = simulation_beginning_date + age_class_time + release_chunk
-            while current_time <= simulation_ending_date:
+            current_time = release_beginning_date + release_chunk
+            while current_time <= release_ending_date:
                 time_chunks.append({
                     'begin': [f'{current_time-release_chunk:%Y%m%d}', f'{current_time-release_chunk:%H%M%S}'],
                     'end': [f'{current_time:%Y%m%d}', f'{current_time:%H%M%S}'],
@@ -111,7 +117,6 @@ class FlexpartCosmoCalculation(CalcJob):
                 current_time += release_chunk
             
             location_data = yaml.safe_load(importlib.resources.read_text("aiida_flexpart.data", "locations.yaml"))
-
             template = jinja2.Template(importlib.resources.read_text("aiida_flexpart.templates", "RELEASES.j2"))
             infile.write(template.render(time_chunks=time_chunks, locations=locations, location_data=location_data))
 
