@@ -3,12 +3,14 @@ TEST_32:
   latitude_of_lower_left_corner: 0047.0536
   longitude_of_upper_right_corner: 0007.2480
   latitude_of_upper_right_corner: 0047.0536
-  lower_z_level: '00032.000'
-  upper_z_level: '00032.000'
+  lower_z_level: 00032.000
+  upper_z_level: 00032.000
+  level_type: 1 # 1 for m above ground, 2 for m above sea level
 TEST_200:
   longitude_of_lower_left_corner: 0007.2480
   latitude_of_lower_left_corner: 0047.0536
   longitude_of_upper_right_corner: 0007.2480
   latitude_of_upper_right_corner: 0047.0536
-  lower_z_level: '00200.000'
-  upper_z_level: '00200.000' 
+  lower_z_level: 00200.000
+  upper_z_level: 00200.000
+  level_type: 1 # 1 for m above ground, 2 for m above sea level
