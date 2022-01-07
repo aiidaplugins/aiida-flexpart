@@ -71,6 +71,7 @@ def test_run(flexpart_code):
         'grid_distance_y': 0.12, # Grid distance in y direction.
         'heights_of_levels': [50.0, 100.0, 200.0, 500.0, 15000.0], # List of heights of leves (upper boundary).
     })
+
     outgrid_nest = orm.Dict(dict={
         'output_grid_type': 0, #  1 for coos provided in rotated system, 0 for geographical.
         'longitude_of_output_grid': 4.96, # Longitude of lower left corner of output grid (left boundary of the first grid cell - not its centre).
@@ -81,6 +82,11 @@ def test_run(flexpart_code):
         'grid_distance_y': 0.015, # Grid distance in y direction.
     })
 
+    release_settings = orm.Dict(dict={
+        'particles_per_release': 50000,
+        'mass_per_release': [1.0],
+        'list_of_species': [24],
+    })
 
     # Links to the remote files/folders.
     glc = orm.RemoteData(remote_path='/users/yaa/resources/flexpart/GLC2000', computer=flexpart_code.computer)
@@ -93,11 +99,11 @@ def test_run(flexpart_code):
     builder = calc.get_builder()
     builder.code = flexpart_code
     builder.model_settings = {
+        'release_settings': release_settings,
         'locations': orm.List(list=['TEST_32', 'TEST_200']),
         'command': command,
         'input_phy': input_phy,
-        }   
-
+        }
     builder.outgrid = outgrid
     builder.outgrid_nest = outgrid_nest
     builder.species = species

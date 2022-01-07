@@ -9,10 +9,10 @@
 *                                                                       *
 *************************************************************************
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  1      
+  {{ release_settings['list_of_species']|length}}
 ___                        i3    Total number of species emitted
 
- 24
+ {% for species in release_settings['list_of_species'] %}{{ species }} {% endfor %}
 ___                        i3    Index of species in file SPECIES
 
 =========================================================================
@@ -43,10 +43,10 @@ ________            Lower z-level
 {{ location_data[location]["upper_z_level"] }}
 ________            Upper z-level
 
-    50000                
+    {{ release_settings['particles_per_release'] }}
 ________            Total number of particles
 
-1.0000E00
+{% for mass in release_settings['mass_per_release'] %}{{ mass }} {% endfor %}
 ________            Total mass emitted
 
 {{ location }}

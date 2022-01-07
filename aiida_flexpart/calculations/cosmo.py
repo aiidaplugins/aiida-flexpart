@@ -36,13 +36,14 @@ class FlexpartCosmoCalculation(CalcJob):
         # new ports
         # Model settings namespace.
         spec.input_namespace('model_settings')
+        spec.input('model_settings.release_settings', valid_type=orm.Dict, required=True)
         spec.input('model_settings.locations', valid_type=orm.List, required=True)
         spec.input('model_settings.command', valid_type=orm.Dict, required=True)
-        spec.input('model_settings.input_phy',  valid_type=orm.Dict, help='#TODO')
+        spec.input('model_settings.input_phy',  valid_type=orm.Dict, required=True)
         
         spec.input('outgrid', valid_type=orm.Dict, help='Input file for the Lagrangian particle dispersion model FLEXPART.')
         spec.input('outgrid_nest', valid_type=orm.Dict, required=False, help='Input file for the Lagrangian particle dispersion model FLEXPART. Nested output grid.')
-        spec.input('species', valid_type=orm.RemoteData, help='#TODO')
+        spec.input('species', valid_type=orm.RemoteData, required=True)
         
         spec.input('metadata.options.output_filename', valid_type=str, default='aiida.out', required=True)
         spec.input_namespace('land_use', valid_type=orm.RemoteData, required=False, dynamic=True, help="#TODO")
@@ -118,7 +119,7 @@ class FlexpartCosmoCalculation(CalcJob):
             
             location_data = yaml.safe_load(importlib.resources.read_text("aiida_flexpart.data", "locations.yaml"))
             template = jinja2.Template(importlib.resources.read_text("aiida_flexpart.templates", "RELEASES.j2"))
-            infile.write(template.render(time_chunks=time_chunks, locations=locations, location_data=location_data))
+            infile.write(template.render(time_chunks=time_chunks, locations=locations, location_data=location_data, release_settings=self.inputs.model_settings.release_settings.get_dict()))
 
         # Fill in the AGECLASSES file.
         with folder.open('AGECLASSES', 'w') as infile:
