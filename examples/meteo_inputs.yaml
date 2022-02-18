@@ -1,0 +1,8 @@
+cosmo7:
+  sampling_rate_of_output: 60
+  synchronisation_interval: 60
+  convection_parametrization: 2
+cosmo1:
+  sampling_rate_of_output: 10
+  synchronisation_interval: 10
+  convection_parametrization: 0
