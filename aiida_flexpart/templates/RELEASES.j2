@@ -16,31 +16,31 @@ ___                        i3    Total number of species emitted
 ___                        i3    Index of species in file SPECIES
 
 =========================================================================
-{% for location in locations %}{% for time_chunk in time_chunks %}{{ time_chunk.begin[0] }} {{ time_chunk.begin[1] }}
+{% for location, location_data in locations.items() %}{% for time_chunk in time_chunks %}{{ time_chunk.begin[0] }} {{ time_chunk.begin[1] }}
 ________ ______     Beginning date and time of release
 
 {{ time_chunk.end[0] }} {{ time_chunk.end[1] }}
 ________ ______     End date and time of release
 
-{{ location_data[location]["longitude_of_lower_left_corner"] }}
+{{ location_data["longitude_of_lower_left_corner"] }}
 ____.____           Longitude of lower left corner
 
-{{ location_data[location]["latitude_of_lower_left_corner"] }}
+{{ location_data["latitude_of_lower_left_corner"] }}
 ____.____           Latitude of lower left corner
 
-{{ location_data[location]["longitude_of_upper_right_corner"] }}
+{{ location_data["longitude_of_upper_right_corner"] }}
 ____.____           Longitude of upper right corner
 
-{{ location_data[location]["latitude_of_upper_right_corner"] }}
+{{ location_data["latitude_of_upper_right_corner"] }}
 ____.____           Latitude of upper right corner
 
-        {{ location_data[location]["level_type"] }}
+        {{ location_data["level_type"] }}
 ________            1 for m above ground, 2 for m above sea level
 
-{{ location_data[location]["lower_z_level"] }}
+{{ location_data["lower_z_level"] }}
 ________            Lower z-level
 
-{{ location_data[location]["upper_z_level"] }}
+{{ location_data["upper_z_level"] }}
 ________            Upper z-level
 
     {{ release_settings['particles_per_release'] }}

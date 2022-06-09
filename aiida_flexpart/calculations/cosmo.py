@@ -37,7 +37,7 @@ class FlexpartCosmoCalculation(CalcJob):
         # Model settings namespace.
         spec.input_namespace('model_settings')
         spec.input('model_settings.release_settings', valid_type=orm.Dict, required=True)
-        spec.input('model_settings.locations', valid_type=orm.List, required=True)
+        spec.input('model_settings.locations', valid_type=orm.Dict, required=True)
         spec.input('model_settings.command', valid_type=orm.Dict, required=True)
         spec.input('model_settings.input_phy',  valid_type=orm.Dict, required=True)
         
@@ -104,7 +104,7 @@ class FlexpartCosmoCalculation(CalcJob):
         command_dict['simulation_ending_date'] = [f'{simulation_ending_date:%Y%m%d}', f'{simulation_ending_date:%H%M%S}']
 
         # Dealing with locations.
-        locations = self.inputs.model_settings.locations.get_list()
+        locations = self.inputs.model_settings.locations.get_dict()
 
         # Fill in the releases file.
         with folder.open('RELEASES', 'w') as infile:
@@ -117,14 +117,27 @@ class FlexpartCosmoCalculation(CalcJob):
                 })
                 current_time += release_chunk
             
-            location_data = yaml.safe_load(importlib.resources.read_text("aiida_flexpart.data", "locations.yaml"))
             template = jinja2.Template(importlib.resources.read_text("aiida_flexpart.templates", "RELEASES.j2"))
-            infile.write(template.render(time_chunks=time_chunks, locations=locations, location_data=location_data, release_settings=self.inputs.model_settings.release_settings.get_dict()))
+            infile.write(template.render(
+                time_chunks=time_chunks,
+                locations=locations,
+                release_settings=self.inputs.model_settings.release_settings.get_dict()
+                )
+            )
 
         # Fill in the AGECLASSES file.
         with folder.open('AGECLASSES', 'w') as infile:
             template = jinja2.Template(importlib.resources.read_text("aiida_flexpart.templates", "AGECLASSES.j2"))
             infile.write(template.render(age_class=int(age_class_time.total_seconds())))
+
+        # Fill in the OUTGRID_NEST file if the corresponding dictionary is present.
+        if 'outgrid_nest' in self.inputs:
+            command_dict["nested_output"] = True
+            with folder.open('OUTGRID_NEST', 'w') as infile:
+                template = jinja2.Template(importlib.resources.read_text("aiida_flexpart.templates", "OUTGRID_NEST.j2"))
+                infile.write(template.render(outgrid=self.inputs.outgrid_nest.get_dict()))
+        else:
+            command_dict["nested_output"] = False
 
         # Fill in the COMMAND file.
         with folder.open('COMMAND', 'w') as infile:
@@ -135,12 +148,6 @@ class FlexpartCosmoCalculation(CalcJob):
         with folder.open('OUTGRID', 'w') as infile:
             template = jinja2.Template(importlib.resources.read_text("aiida_flexpart.templates", "OUTGRID.j2"))
             infile.write(template.render(outgrid=self.inputs.outgrid.get_dict()))
-
-        # Fill in the OUTGRID_NEST file if the corresponding dictionary is present.
-        if 'outgrid_nest' in self.inputs:
-            with folder.open('OUTGRID_NEST', 'w') as infile:
-                template = jinja2.Template(importlib.resources.read_text("aiida_flexpart.templates", "OUTGRID_NEST.j2"))
-                infile.write(template.render(outgrid=self.inputs.outgrid_nest.get_dict()))
 
         calcinfo.remote_symlink_list = []
         calcinfo.remote_symlink_list.append((self.inputs.species.computer.uuid, self.inputs.species.get_remote_path(), 'SPECIES'))
