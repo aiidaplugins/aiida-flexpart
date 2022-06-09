@@ -40,10 +40,7 @@ def simulation_dates_parser(date_list: list) -> list:
 
 def test_run(flexpart_code):
     """Run workflow."""
-    # TODO: ask Stephan about meteo data in this range of dates
     simulation_dates = simulation_dates_parser(["2021-01-01--2021-01-02"])
-    # TODO: should define a variable for the meteo model name
-    #   e.g. meteo_model_name = 'cosmo7'
 
     # Links to the remote files/folders.
     glc = orm.RemoteData(remote_path='/users/yaa/resources/flexpart/GLC2000', computer=flexpart_code.computer)
@@ -54,7 +51,6 @@ def test_run(flexpart_code):
     workflow = plugins.WorkflowFactory("flexpart.multi_dates")
     builder = workflow.get_builder()
     builder.code = flexpart_code
-    # TODO: double-check with Stephan about the geo region name
     builder.outgrid = orm.Dict(dict=read_yaml_data("outgrid.yaml", names=["Europe",])["Europe"])
     builder.outgrid_nest = orm.Dict(dict=read_yaml_data("outgrid_nest.yaml", names=["Europe",])["Europe"]) # optional input
     builder.simulation_dates = simulation_dates
