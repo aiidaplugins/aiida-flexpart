@@ -19,6 +19,9 @@
         ],
         "aiida.parsers": [
             "flexpart.cosmo = aiida_flexpart.parsers.cosmo:FlexpartCosmoParser"
+        ],
+        "aiida.workflows": [
+            "flexpart.multi_dates = aiida_flexpart.workflows.multi_dates_workflow:FlexpartMultipleDatesWorkflow"
         ]
     },
     "include_package_data": true,

@@ -4,13 +4,25 @@
 
 Usage: ./example_01.py
 """
-from pathlib import Path
+import pathlib
 import click
+import yaml
 from aiida import cmdline, engine, orm
 from aiida.plugins import DataFactory, CalculationFactory
 from aiida_flexpart import helpers
 
-INPUT_DIR = Path(__file__).resolve().parent / 'input_files'
+INPUT_DIR = pathlib.Path(__file__).resolve().parent / 'input_files'
+
+def read_yaml_data(data_filename: str, names=None) -> dict:
+    """Read in a YAML data file as a dictionary"""
+    data_path = pathlib.Path(data_filename)
+    try:
+        with data_path.open('r', encoding='utf-8') as fp:
+            yaml_data = yaml.safe_load(fp)
+    except FileNotFoundError:
+        raise
+    
+    return {key: value for key, value in yaml_data.items() if key in names} if names else yaml_data
 
 def test_run(flexpart_code):
     """Run a calculation on the localhost computer.
@@ -45,7 +57,6 @@ def test_run(flexpart_code):
         'concentration_units_at_source': 1, # 1=mass unit , 2=mass mixing ratio unit.
         'concentration_units_at_receptor': 2, # 1=mass unit , 2=mass mixing ratio unit.
         'quasilagrangian_mode_to_track_particles': False, # Quasilagrangian mode to track individual particles.
-        'nested_output': True, # Shall nested output be used? 
         'cosmo_model_mixing_height': False, # Shall cosmo model mixing height be used if present?
         'cosmo_grid_relaxation_zone_width': 50.0, # Width of cosmo grid relaxation zone in km
     })
@@ -61,26 +72,9 @@ def test_run(flexpart_code):
         'hmixmax': 4500.0,
     })
 
-    outgrid = orm.Dict(dict={
-        'output_grid_type': 0, #  1 for coos provided in rotated system, 0 for geographical.
-        'longitude_of_output_grid': -12.00, # Longitude of lower left corner of output grid (left boundary of the first grid cell - not its centre).
-        'latitude_of_output_grid': 36.00, # Latitude of lower left corner of output grid  (lower boundary of the first grid cell - not its centre).
-        'number_of_grid_points_x': 207, # Number of grid points in x direction (= # of cells + 1).
-        'number_of_grid_points_y': 179, # Number of grid points in y direction (= # of cells + 1).
-        'grid_distance_x': 0.16, # Grid distance in x direction.
-        'grid_distance_y': 0.12, # Grid distance in y direction.
-        'heights_of_levels': [50.0, 100.0, 200.0, 500.0, 15000.0], # List of heights of leves (upper boundary).
-    })
+    outgrid = orm.Dict(dict=read_yaml_data("outgrid.yaml", names=["Europe"])["Europe"])
 
-    outgrid_nest = orm.Dict(dict={
-        'output_grid_type': 0, #  1 for coos provided in rotated system, 0 for geographical.
-        'longitude_of_output_grid': 4.96, # Longitude of lower left corner of output grid (left boundary of the first grid cell - not its centre).
-        'latitude_of_output_grid': 45.48, # Latitude of lower left corner of output grid  (lower boundary of the first grid cell - not its centre).
-        'number_of_grid_points_x': 305, # Number of grid points in x direction (= # of cells + 1).
-        'number_of_grid_points_y': 205, # Number of grid points in y direction (= # of cells + 1).
-        'grid_distance_x': 0.02, # Grid distance in x direction.
-        'grid_distance_y': 0.015, # Grid distance in y direction.
-    })
+    outgrid_nest = orm.Dict(dict=read_yaml_data("outgrid_nest.yaml", names=["Europe"])["Europe"])
 
     release_settings = orm.Dict(dict={
         'particles_per_release': 50000,
@@ -100,7 +94,7 @@ def test_run(flexpart_code):
     builder.code = flexpart_code
     builder.model_settings = {
         'release_settings': release_settings,
-        'locations': orm.List(list=['TEST_32', 'TEST_200']),
+        'locations': orm.Dict(dict=read_yaml_data("locations.yaml", names=["TEST_32", "TEST_200"])),
         'command': command,
         'input_phy': input_phy,
         }
@@ -117,6 +111,7 @@ def test_run(flexpart_code):
     # builder.metadata.dry_run = True
     # builder.metadata.store_provenance = False
     result = engine.run(builder)
+    # result = engine.submit(builder) # submit to aiida daemon
 
 
 @click.command()
