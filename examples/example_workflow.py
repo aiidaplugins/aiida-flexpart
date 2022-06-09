@@ -17,8 +17,7 @@ def read_yaml_data(data_filename: str, names=None) -> dict:
 
     return {key: value for key, value in yaml_data.items() if key in names} if names else yaml_data
 
-# TODO: add range parsing with '--'
-def simulation_date_parser(date_string: str) -> list:
+def simulation_dates_parser(date_list: list) -> list:
     """
     Parse a range of dates and returns a list of date strings.
     
@@ -27,38 +26,47 @@ def simulation_date_parser(date_string: str) -> list:
         2021-01-02, 2021-01-10 -> [2021-01-02 00:00:00, 2021-01-10 00:00:00]
         2021-01-02 -> [2021-01-02 00:00:00,]
     """
-    if ',' in date_string:
-        date_range = [date.strip() + '00:00:00' for date in date_string.split(',')]
-    elif '--' in date_string:
-        date_start, date_end = list(map(lambda date: datetime.datetime.strptime(date, "%Y-%m-%d"), date_string.split('--')))
-        date_range = [date.strftime("%Y-%m-%d 00:00:00") for date in [date_start + datetime.timedelta(days=x) for x in range(0, (date_end-date_start).days+1)]]
-    else:
-        date_range = [date_string.strip() + '00:00:00']
-    
-    return orm.List(list=date_range)
+    dates = []
+    for date_string in date_list:
+        if ',' in date_string:
+            dates += [date.strip() + '00:00:00' for date in date_string.split(',')]
+        elif '--' in date_string:
+            date_start, date_end = list(map(lambda date: datetime.datetime.strptime(date, "%Y-%m-%d"), date_string.split('--')))
+            dates += [date.strftime("%Y-%m-%d 00:00:00") for date in [date_start + datetime.timedelta(days=x) for x in range(0, (date_end-date_start).days+1)]]
+        else:
+            dates += [date_string.strip() + ' 00:00:00']
+        
+    return orm.List(list=dates)
 
 def test_run(flexpart_code):
     """Run workflow."""
     # TODO: ask Stephan about meteo data in this range of dates
-    simulation_date = simulation_date_parser(["2021-01-02--2021-01-10","2021-01-02"])
-    
-    # TODO: test workflow with multiple locations
-    locations_data = read_yaml_data("locations.yaml", names=["TEST_32",])
-
+    simulation_dates = simulation_dates_parser(["2021-01-01--2021-01-02"])
     # TODO: should define a variable for the meteo model name
     #   e.g. meteo_model_name = 'cosmo7'
-    meteo_inputs = read_yaml_data("meteo_inputs.yaml", names=["cosmo7",])["cosmo7"]
+
+    # Links to the remote files/folders.
+    glc = orm.RemoteData(remote_path='/users/yaa/resources/flexpart/GLC2000', computer=flexpart_code.computer)
+    species = orm.RemoteData(remote_path='/users/yaa/resources/flexpart/SPECIES', computer=flexpart_code.computer)
+    surfdata = orm.RemoteData(remote_path='/users/yaa/resources/flexpart/surfdata.t', computer=flexpart_code.computer)
+    surfdepo = orm.RemoteData(remote_path='/users/yaa/resources/flexpart/surfdepo.t', computer=flexpart_code.computer)
 
     workflow = plugins.WorkflowFactory("flexpart.multi_dates")
     builder = workflow.get_builder()
     builder.code = flexpart_code
     # TODO: double-check with Stephan about the geo region name
-    builder.outgrid = read_yaml_data("outgrid.yaml", names=["Europe",])["Europe"]
-    builder.outgrid_nest = read_yaml_data("outgrid_nest.yaml", names=["Europe",])["Europe"] # optional input
-    builder.simulation_date = simulation_date
-    builder.locations_data = locations_data
-    builder.meteo_inputs = meteo_inputs
-    
+    builder.outgrid = orm.Dict(dict=read_yaml_data("outgrid.yaml", names=["Europe",])["Europe"])
+    builder.outgrid_nest = orm.Dict(dict=read_yaml_data("outgrid_nest.yaml", names=["Europe",])["Europe"]) # optional input
+    builder.simulation_dates = simulation_dates
+    builder.locations = orm.Dict(dict=read_yaml_data("locations.yaml", names=["TEST_32",]))
+    builder.meteo_inputs = orm.Dict(dict=read_yaml_data("meteo_inputs.yaml", names=["cosmo7",])["cosmo7"])
+    builder.integration_time = orm.Int(24)
+    builder.species = species
+    builder.land_use = {
+        'glc': glc,
+        'surfdata': surfdata,
+        'surfdepo': surfdepo,
+        }
     engine.run(builder)
 
 @click.command()

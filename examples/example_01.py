@@ -83,10 +83,10 @@ def test_run(flexpart_code):
     })
 
     # Links to the remote files/folders.
-    glc = orm.RemoteData(remote_path='/users/ebaldi/resources/flexpart/GLC2000', computer=flexpart_code.computer)
-    species = orm.RemoteData(remote_path='/users/ebaldi/resources/flexpart/SPECIES', computer=flexpart_code.computer)
-    surfdata = orm.RemoteData(remote_path='/users/ebaldi/resources/flexpart/surfdata.t', computer=flexpart_code.computer)
-    surfdepo = orm.RemoteData(remote_path='/users/ebaldi/resources/flexpart/surfdepo.t', computer=flexpart_code.computer)
+    glc = orm.RemoteData(remote_path='/users/yaa/resources/flexpart/GLC2000', computer=flexpart_code.computer)
+    species = orm.RemoteData(remote_path='/users/yaa/resources/flexpart/SPECIES', computer=flexpart_code.computer)
+    surfdata = orm.RemoteData(remote_path='/users/yaa/resources/flexpart/surfdata.t', computer=flexpart_code.computer)
+    surfdepo = orm.RemoteData(remote_path='/users/yaa/resources/flexpart/surfdepo.t', computer=flexpart_code.computer)
 
     # Set up calculation.
     calc = CalculationFactory('flexpart.cosmo')

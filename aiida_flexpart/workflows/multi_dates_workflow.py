@@ -20,6 +20,8 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
         spec.input('integration_time', valid_type=orm.Int, help="Integration time in hours")
         spec.input('outgrid', valid_type=orm.Dict)
         spec.input('outgrid_nest', valid_type=orm.Dict, required=False)
+        spec.input('species', valid_type=orm.RemoteData, required=True)
+        spec.input_namespace('land_use', valid_type=orm.RemoteData, required=False, dynamic=True, help="#TODO")
         # Outputs
         spec.output('output_file', valid_type=orm.SinglefileData)
         # What the workflow will do, step-by-step
@@ -31,7 +33,7 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
 
     def setup(self):
         """Prepare a simulation."""
-        command = orm.Dict(dict={
+        command = {
             'simulation_direction': -1, # 1 for forward simulation, -1 for backward simulation.
             # 'simulation_date': self.inputs.simulation_date.value,  # YYYY-MM-DD HH:MI:SS beginning date of simulation.
             'age_class': self.inputs.integration_time * 3600, # seconds
@@ -59,12 +61,12 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
             # 'nested_output': True, # Shall nested output be used? 
             'cosmo_model_mixing_height': False, # Shall cosmo model mixing height be used if present?
             'cosmo_grid_relaxation_zone_width': 50.0, # Width of cosmo grid relaxation zone in km
-        })
+        }
         
         # Add meteo model params to simulation's setup
-        command.update_dict(self.inputs.meteo_inputs)
+        command.update(self.inputs.meteo_inputs)
 
-        self.ctx.command = command
+        self.ctx.command = orm.Dict(dict=command)
 
         self.ctx.input_phy = orm.Dict(dict={
             'use2mTemperatures': False,
@@ -88,12 +90,9 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
         })
 
         self.ctx.locations = self.inputs.locations
-        self.ctx.locations_data = self.inputs_locations_data
 
-        self.ctx.glc = orm.RemoteData(remote_path='/users/ebaldi/resources/flexpart/GLC2000', computer=self.inputs.code.computer)
-        self.ctx.species = orm.RemoteData(remote_path='/users/ebaldi/resources/flexpart/SPECIES', computer=self.inputs.code.computer)
-        self.ctx.surfdata = orm.RemoteData(remote_path='/users/ebaldi/resources/flexpart/surfdata.t', computer=self.inputs.code.computer)
-        self.ctx.surfdepo = orm.RemoteData(remote_path='/users/ebaldi/resources/flexpart/surfdepo.t', computer=self.inputs.code.computer)
+        self.ctx.species = self.inputs.species
+        self.ctx.land_use = self.inputs.land_use
 
     def run_simulation(self):
         """Run calculations for equation of state."""
@@ -112,17 +111,13 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
             builder.outgrid = self.ctx.outgrid
             builder.outgrid_nest = self.ctx.outgrid_nest
             builder.species = self.ctx.species
-            builder.land_use = {
-                'glc': self.ctx.glc,
-                'surfdata': self.ctx.surfdata,
-                'surfdepo': self.ctx.surfdepo,
-            }
+            builder.land_use = self.ctx.land_use
 
             builder.metadata = {'description': 'Test workflow to submit a flexpart calculation'}
 
             # Ask the workflow to continue when the results are ready and store them in the context
             running = self.submit(builder)
-            return engine.to_context(calculation=running)
+            return self.to_context(calculation=running)
 
     def results(self):
         """Process results."""
