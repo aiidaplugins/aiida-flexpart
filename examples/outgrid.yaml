@@ -1,0 +1,14 @@
+Europe:
+  output_grid_type: 0 #  1 for coos provided in rotated system 0 for geographical.
+  longitude_of_output_grid: -12.00 # Longitude of lower left corner of output grid (left boundary of the first grid cell - not its centre).
+  latitude_of_output_grid: 36.00 # Latitude of lower left corner of output grid  (lower boundary of the first grid cell - not its centre).
+  number_of_grid_points_x: 207 # Number of grid points in x direction (= # of cells + 1).
+  number_of_grid_points_y: 179 # Number of grid points in y direction (= # of cells + 1).
+  grid_distance_x: 0.16 # Grid distance in x direction.
+  grid_distance_y: 0.12 # Grid distance in y direction.
+  heights_of_levels: # List of heights of leves (upper boundary).
+    - 50.0
+    - 100.0
+    - 200.0
+    - 500.0
+    - 15000.0
