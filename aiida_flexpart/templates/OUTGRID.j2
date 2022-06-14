@@ -6,33 +6,33 @@
 ********************************************************************************
 
 1.  -                 4X, I1
-    {{ outgrid.output_grid_type }}                 OUTPUT GRID TYPE (COSMO ROTATED OR GEOGRAPHICAL)
+    {{ data.output_grid_type }}                 OUTPUT GRID TYPE (COSMO ROTATED OR GEOGRAPHICAL)
     OUTTYPE           1 for coos provided in rotated system, 0 for geographical
 
 2.  ------.----       4X,F11.4
-       {{ outgrid.longitude_of_output_grid }}        LONGITUDE OF LOWER LEFT CORNER OF OUTPUT GRID
+       {{ data.longitude_of_output_grid }}        LONGITUDE OF LOWER LEFT CORNER OF OUTPUT GRID
     OUTLONLEFT        (left boundary of the first grid cell - not its centre)
 
 3.  ------.----       4X,F11.4
-        {{ outgrid.latitude_of_output_grid }}       LATITUDE OF LOWER LEFT CORNER OF OUTPUT GRID
+        {{ data.latitude_of_output_grid }}       LATITUDE OF LOWER LEFT CORNER OF OUTPUT GRID
     OUTLATLOWER       (lower boundary of the first grid cell - not its centre)
 
 4.  -----             4X,I5
-      {{ outgrid.number_of_grid_points_x }}             NUMBER OF GRID POINTS IN X DIRECTION (= No. of cells + 1)
+      {{ data.number_of_grid_points_x }}             NUMBER OF GRID POINTS IN X DIRECTION (= No. of cells + 1)
     NUMXGRID
 
 5.  -----             4X,I5
-      {{ outgrid.number_of_grid_points_y }}             NUMBER OF GRID POINTS IN Y DIRECTION (= No. of cells + 1)
+      {{ data.number_of_grid_points_y }}             NUMBER OF GRID POINTS IN Y DIRECTION (= No. of cells + 1)
     NUMYGRID
 
 6.  ------.---        4X,F10.3
-         {{ outgrid.grid_distance_x }}         GRID DISTANCE IN X DIRECTION
+         {{ data.grid_distance_x }}         GRID DISTANCE IN X DIRECTION
     DXOUTLON
 
 7.  ------.---        4X,F10.3
-         {{ outgrid.grid_distance_y }}         GRID DISTANCE IN Y DIRECTION
+         {{ data.grid_distance_y }}         GRID DISTANCE IN Y DIRECTION
     DYOUTLAT
-{% for level in outgrid.heights_of_levels %}
+{% for level in data.heights_of_levels %}
 {{ loop.index + 7 }}.  -----.-           4X, F7.1
     {{ level }}
     LEVEL {{ loop.index }}           HEIGHT OF LEVEL (UPPER BOUNDARY)

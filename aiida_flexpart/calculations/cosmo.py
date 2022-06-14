@@ -13,6 +13,8 @@ from aiida.common import datastructures
 from aiida.engine import CalcJob
 from aiida_flexpart.utils import convert_input_to_namelist_entry
 
+from ..utils import fill_in_template_file
+
 
 class FlexpartCosmoCalculation(CalcJob):
     """AiiDA calculation plugin wrapping the FLEXPART executable."""
@@ -135,28 +137,21 @@ class FlexpartCosmoCalculation(CalcJob):
             )
 
         # Fill in the AGECLASSES file.
-        with folder.open('AGECLASSES', 'w') as infile:
-            template = jinja2.Template(importlib.resources.read_text('aiida_flexpart.templates', 'AGECLASSES.j2'))
-            infile.write(template.render(age_class=int(age_class_time.total_seconds())))
+        fill_in_template_file(folder, 'AGECLASSES', int(age_class_time.total_seconds()))
 
         # Fill in the OUTGRID_NEST file if the corresponding dictionary is present.
         if 'outgrid_nest' in self.inputs:
             command_dict['nested_output'] = True
-            with folder.open('OUTGRID_NEST', 'w') as infile:
-                template = jinja2.Template(importlib.resources.read_text('aiida_flexpart.templates', 'OUTGRID_NEST.j2'))
-                infile.write(template.render(outgrid=self.inputs.outgrid_nest.get_dict()))
+            fill_in_template_file(folder, 'OUTGRID_NEST', self.inputs.outgrid_nest.get_dict())
         else:
             command_dict['nested_output'] = False
 
         # Fill in the COMMAND file.
-        with folder.open('COMMAND', 'w') as infile:
-            template = jinja2.Template(importlib.resources.read_text('aiida_flexpart.templates', 'COMMAND.j2'))
-            infile.write(template.render(command=command_dict))
+        fill_in_template_file(folder, 'COMMAND', command_dict)
 
         # Fill in the OUTGRID file.
-        with folder.open('OUTGRID', 'w') as infile:
-            template = jinja2.Template(importlib.resources.read_text('aiida_flexpart.templates', 'OUTGRID.j2'))
-            infile.write(template.render(outgrid=self.inputs.outgrid.get_dict()))
+        fill_in_template_file(folder, 'OUTGRID', self.inputs.outgrid.get_dict())
+
 
         calcinfo.remote_symlink_list = []
         calcinfo.remote_symlink_list.append((

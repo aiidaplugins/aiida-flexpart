@@ -2,7 +2,9 @@
 """Utilties to convert between python and fortran data types and formats."""
 
 import numbers
+import importlib
 import numpy
+import jinja2
 
 
 def conv_to_fortran(val, quote_strings=True):
@@ -170,3 +172,12 @@ def convert_input_to_namelist_entry(key, val, mapping=None):
     # Single value
     else:
         return f'  {key} = {conv_to_fortran(val)}\n'
+
+
+def fill_in_template_file(folder, fname, data):
+    """Create an input file based on the standard templates."""
+    with folder.open(fname, 'w') as infile:
+        template = jinja2.Template(
+            importlib.resources.read_text('aiida_flexpart.templates',
+                                          fname + '.j2'))
+        infile.write(template.render(data=data))
