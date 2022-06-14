@@ -8,8 +8,7 @@ import pathlib
 import click
 import yaml
 from aiida import cmdline, engine, orm
-from aiida.plugins import DataFactory, CalculationFactory
-from aiida_flexpart import helpers
+from aiida.plugins import CalculationFactory
 
 INPUT_DIR = pathlib.Path(__file__).resolve().parent / 'input_files'
 
@@ -17,11 +16,8 @@ INPUT_DIR = pathlib.Path(__file__).resolve().parent / 'input_files'
 def read_yaml_data(data_filename: str, names=None) -> dict:
     """Read in a YAML data file as a dictionary"""
     data_path = pathlib.Path(data_filename)
-    try:
-        with data_path.open('r', encoding='utf-8') as fp:
-            yaml_data = yaml.safe_load(fp)
-    except FileNotFoundError:
-        raise
+    with data_path.open('r', encoding='utf-8') as fp:
+        yaml_data = yaml.safe_load(fp)
 
     return {key: value
             for key, value in yaml_data.items()
@@ -59,7 +55,9 @@ def test_run(flexpart_code):
             'vertical_motion_time_decrease':
             4,  # Decrease of time step for vertical motion by factor ifine.
             'concentration_output':
-            9,  # Determines how the output shall be made: concentration (ng/m3, Bq/m3), mixing ratio (pptv), or both, or plume trajectory mode, or concentration + plume trajectory mode. In plume trajectory mode, output is in the form of average trajectories.
+            9,  # Determines how the output shall be made: concentration (ng/m3, Bq/m3), mixing ratio (pptv),
+            # or both, or plume trajectory mode, or concentration + plume trajectory mode.
+            # In plume trajectory mode, output is in the form of average trajectories.
             'particle_dump':
             4,  # Particle dump: 0 no, 1 every output interval, 2 only at end, 4 when leaving domain.
             'subgrid_terrain_effect_parameterization':
@@ -154,7 +152,7 @@ def test_run(flexpart_code):
     }
     # builder.metadata.dry_run = True
     # builder.metadata.store_provenance = False
-    result = engine.run(builder)
+    engine.run(builder)
     # result = engine.submit(builder) # submit to aiida daemon
 
 
