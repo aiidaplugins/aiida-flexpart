@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import click
+"""Run a multi dates workflow."""
+
 import pathlib
 import datetime
+import click
 import yaml
 from aiida import orm, plugins, engine, cmdline
 
@@ -10,11 +12,8 @@ from aiida import orm, plugins, engine, cmdline
 def read_yaml_data(data_filename: str, names=None) -> dict:
     """Read in a YAML data file as a dictionary"""
     data_path = pathlib.Path(data_filename)
-    try:
-        with data_path.open('r', encoding='utf-8') as fp:
-            yaml_data = yaml.safe_load(fp)
-    except FileNotFoundError:
-        raise
+    with data_path.open('r', encoding='utf-8') as fp:
+        yaml_data = yaml.safe_load(fp)
 
     return {key: value
             for key, value in yaml_data.items()
