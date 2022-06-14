@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Equation of State WorkChain."""
-from distutils import command
+"""Flexpart multi-dates WorkChain."""
 from aiida import engine, plugins, orm
 
 FlexpartCalculation = plugins.CalculationFactory('flexpart.cosmo')
@@ -64,7 +63,9 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
             'vertical_motion_time_decrease':
             4,  # Decrease of time step for vertical motion by factor ifine.
             'concentration_output':
-            9,  # Determines how the output shall be made: concentration (ng/m3, Bq/m3), mixing ratio (pptv), or both, or plume trajectory mode, or concentration + plume trajectory mode. In plume trajectory mode, output is in the form of average trajectories.
+            9,  # Determines how the output shall be made: concentration (ng/m3, Bq/m3), mixing ratio (pptv), or both,
+            # or plume trajectory mode, or concentration + plume trajectory mode. In plume trajectory mode, output is
+            # in the form of average trajectories.
             'particle_dump':
             4,  # Particle dump: 0 no, 1 every output interval, 2 only at end, 4 when leaving domain.
             'subgrid_terrain_effect_parameterization':
