@@ -5,15 +5,12 @@ Calculations provided by aiida_flexpart.
 Register calculations via the "aiida.calculations" entry point in setup.json.
 """
 import importlib
-import pathlib
-import jinja2
 import datetime
-import yaml
+import jinja2
 
 from aiida import orm
 from aiida.common import datastructures
 from aiida.engine import CalcJob
-from aiida.plugins import DataFactory
 from aiida_flexpart.utils import convert_input_to_namelist_entry
 
 
@@ -42,7 +39,12 @@ class FlexpartCosmoCalculation(CalcJob):
         spec.input('model_settings.input_phy',  valid_type=orm.Dict, required=True)
 
         spec.input('outgrid', valid_type=orm.Dict, help='Input file for the Lagrangian particle dispersion model FLEXPART.')
-        spec.input('outgrid_nest', valid_type=orm.Dict, required=False, help='Input file for the Lagrangian particle dispersion model FLEXPART. Nested output grid.')
+        spec.input(
+            'outgrid_nest',
+            valid_type=orm.Dict,
+            required=False,
+            help='Input file for the Lagrangian particle dispersion model FLEXPART. Nested output grid.'
+            )
         spec.input('species', valid_type=orm.RemoteData, required=True)
 
         spec.input('metadata.options.output_filename', valid_type=str, default='aiida.out', required=True)
@@ -66,7 +68,8 @@ class FlexpartCosmoCalculation(CalcJob):
             './', # Folder containing the inputs.
             './', # Folder containing the outputs.
             '/scratch/snx3000/yaa/FP2AiiDA/meteo/cosmo7/', # Large data input folder
-            '/scratch/snx3000/yaa/FP2AiiDA/meteo/cosmo7/AVAILABLE', # File that lists all the individual input files that are available and assigns them a date
+            '/scratch/snx3000/yaa/FP2AiiDA/meteo/cosmo7/AVAILABLE',
+            # File that lists all the individual input files that are available and assigns them a date
         ]
         codeinfo.code_uuid = self.inputs.code.uuid
         codeinfo.stdout_name = self.metadata.options.output_filename
@@ -100,8 +103,14 @@ class FlexpartCosmoCalculation(CalcJob):
         if release_beginning_date > release_ending_date:
             release_beginning_date, release_ending_date = release_ending_date, release_beginning_date
 
-        command_dict['simulation_beginning_date'] = [f'{simulation_beginning_date:%Y%m%d}', f'{simulation_beginning_date:%H%M%S}']
-        command_dict['simulation_ending_date'] = [f'{simulation_ending_date:%Y%m%d}', f'{simulation_ending_date:%H%M%S}']
+        command_dict['simulation_beginning_date'] = [
+            f'{simulation_beginning_date:%Y%m%d}',
+            f'{simulation_beginning_date:%H%M%S}'
+            ]
+        command_dict['simulation_ending_date'] = [
+            f'{simulation_ending_date:%Y%m%d}',
+            f'{simulation_ending_date:%H%M%S}'
+            ]
 
         # Dealing with locations.
         locations = self.inputs.model_settings.locations.get_dict()
@@ -150,10 +159,14 @@ class FlexpartCosmoCalculation(CalcJob):
             infile.write(template.render(outgrid=self.inputs.outgrid.get_dict()))
 
         calcinfo.remote_symlink_list = []
-        calcinfo.remote_symlink_list.append((self.inputs.species.computer.uuid, self.inputs.species.get_remote_path(), 'SPECIES'))
+        calcinfo.remote_symlink_list.append((
+            self.inputs.species.computer.uuid,
+            self.inputs.species.get_remote_path(),
+            'SPECIES'
+            ))
 
         # Dealing with land_use input namespace.
-        for name, obj in self.inputs.land_use.items():
+        for _, obj in self.inputs.land_use.items():
             computer_uuid = obj.computer.uuid
             file_path = obj.get_remote_path()
             file_name = file_path.split('/')[-1]
