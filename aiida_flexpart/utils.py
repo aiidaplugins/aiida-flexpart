@@ -2,13 +2,13 @@
 """Utilties to convert between python and fortran data types and formats."""
 
 import numbers
+import numpy
 
 
 def conv_to_fortran(val, quote_strings=True):
     """Convert a python value to a format suited for fortran input.
     :param val: the value to be read and converted to a Fortran-friendly string.
     """
-    import numpy
 
     # Note that bool should come before integer, because a boolean matches also isinstance(..., int)
     if isinstance(val, (bool, numpy.bool_)):
@@ -153,8 +153,7 @@ def convert_input_to_namelist_entry(key, val, mapping=None):
                             raise ValueError(
                                 f'the nested list contained string {value} but this is not a key in the mapping'
                             )
-                        else:
-                            values.append(str(mapping[value]))
+                        values.append(str(mapping[value]))
                     else:
                         values.append(str(value))
 
