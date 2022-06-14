@@ -29,7 +29,8 @@ def get_path_to_executable(executable):
     """
     path = shutil.which(executable)
     if path is None:
-        raise ValueError("'{}' executable not found in PATH.".format(executable))
+        raise ValueError(
+            "'{}' executable not found in PATH.".format(executable))
     return path
 
 
@@ -86,7 +87,7 @@ def get_code(entry_point, computer):
     if codes:
         return codes[0]
 
-    path = get_path_to_executable(executable)	
+    path = get_path_to_executable(executable)
     code = Code(
         input_plugin_name=entry_point,
         remote_computer_exec=[computer, path],

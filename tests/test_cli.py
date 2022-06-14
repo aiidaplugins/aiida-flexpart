@@ -7,10 +7,10 @@ from aiida.plugins import DataFactory
 
 from aiida_flexpart.cli import list_, export
 
+
 # pylint: disable=attribute-defined-outside-init
 class TestDataCli:
     """Test verdi data cli plugin."""
-
     def setup_method(self):
         """Prepare nodes for cli tests."""
         DiffParameters = DataFactory('flexpart')

@@ -6,15 +6,15 @@
 ********************************************************************************
 
 1. __                3X, I2
-   {{ command.simulation_direction }}       
+   {{ command.simulation_direction }}
    LDIRECT           1 FOR FORWARD SIMULATION, -1 FOR BACKWARD SIMULATION
 
 2. ________ ______   3X, I8, 1X, I6
-   {{ command.simulation_beginning_date[0] }} {{ command.simulation_beginning_date[1] }} 
+   {{ command.simulation_beginning_date[0] }} {{ command.simulation_beginning_date[1] }}
    YYYYMMDD HHMISS   BEGINNING DATE OF SIMULATION
 
 3. ________ ______   3X, I8, 1X, I6
-   {{ command.simulation_ending_date[0] }} {{ command.simulation_ending_date[1] }} 
+   {{ command.simulation_ending_date[0] }} {{ command.simulation_ending_date[1] }}
    YYYYMMDD HHMISS   ENDING DATE OF SIMULATION
 
 4. _____             3X, I5
@@ -46,7 +46,7 @@
     IFINE            DECREASE OF TIME STEP FOR VERTICAL MOTION BY FACTOR IFINE
 
 11. -                4X, I1
-    {{ command.concentration_output }} 
+    {{ command.concentration_output }}
     IOUT             1 CONCENTRATION (RESIDENCE TIME FOR BACKWARD RUNS) OUTPUT, 2 MIXING RATIO OUTPUT, 3 BOTH,4 PLUME TRAJECT., 5=1+4
 
 12. -                4X, I1
@@ -83,11 +83,11 @@
 
 20. _                4X, I1
     {{ command.concentration_units_at_source }}
-    IND_SOURCE       1=MASS UNIT , 2=MASS MIXING RATIO UNIT 
+    IND_SOURCE       1=MASS UNIT , 2=MASS MIXING RATIO UNIT
 
 21. _                4X, I1
     {{ command.concentration_units_at_receptor }}
-    IND_RECEPTOR     1=MASS UNIT , 2=MASS MIXING RATIO UNIT 
+    IND_RECEPTOR     1=MASS UNIT , 2=MASS MIXING RATIO UNIT
 
 22. _                4X, I1
     {{ 1 if command.quasilagrangian_mode_to_track_particles else 0 }}
@@ -105,7 +105,7 @@
     {{ command.cosmo_grid_relaxation_zone_width }}
     RLWIDTH          WIDTH OF COSMO GRID RELAXATION ZONE IN KM
 
-1. Simulation direction, 1 for forward, -1 for backward in time 
+1. Simulation direction, 1 for forward, -1 for backward in time
 	(consult Seibert and Frank, 2004 for backward runs)
 
 2. Beginning date and time of simulation. Must be given in format
@@ -173,13 +173,13 @@
     created at the boundaries throughout the simulation period.
 
 20. IND_SOURCE switches between different units for concentrations at the source
-    NOTE that in backward simulations the release of computational particles 
+    NOTE that in backward simulations the release of computational particles
     takes place at the "receptor" and the sampling of particles at the "source".
           1=mass units (for bwd-runs = concentration)
-          2=mass mixing ratio units 
+          2=mass mixing ratio units
 21. IND_RECEPTOR switches between different units for concentrations at the receptor
           1=mass units (concentrations)
-          2=mass mixing ratio units 
+          2=mass mixing ratio units
 
 22. MQUASILAG indicates whether particles shall be numbered consecutively (1) or
     with their release location number (0). The first option allows tracking of
@@ -187,15 +187,14 @@
 
 23. NESTED_OUTPUT decides whether model output shall be made also for a nested
     output field (normally with higher resolution)
-    
+
 24. COSMO_HMIX decides whether the mixing layer height field eventually provided
     in the GRIB files is used instead of the internally calculated field.
     Mixing layer heights are stored as MIX_LAY_DE, DWD table 2, GBRIB code 67
-    
+
 25. RLWIDTH is the width [km] of the relaxation zone in the COSMO model (as
     defined in the NAMELIST, but not specified in the GRIB output).
     Here, the width needs to be provided in km. COSMO-FLEXPART uses RLWIDTH
     to compute a parameter IRWIDTH which specifies the number of grid cells
     from the border at which a particle is transferred to the next outer nest
     or terminated if it is in the mother domain.
-    

@@ -32,6 +32,7 @@ def conv_to_fortran(val, quote_strings=True):
 
     return val_str
 
+
 def convert_input_to_namelist_entry(key, val, mapping=None):
     """Convert a key and a value, from an input parameters dictionary for a namelist calculation.
     Map it to the  appropriate string format for the namelist input file. For single values it will return a single
@@ -100,7 +101,9 @@ def convert_input_to_namelist_entry(key, val, mapping=None):
     if isinstance(val, dict):
 
         if mapping is None:
-            raise ValueError("If 'val' is a dictionary, you must provide also the 'mapping' parameter")
+            raise ValueError(
+                "If 'val' is a dictionary, you must provide also the 'mapping' parameter"
+            )
 
         # At difference with the case of a list, at the beginning list_of_strings
         # is a list of 2-tuples where the first element is the idx, and the
@@ -111,9 +114,12 @@ def convert_input_to_namelist_entry(key, val, mapping=None):
             try:
                 idx = mapping[elemk]
             except KeyError as exception:
-                raise ValueError(f"Unable to find the key '{elemk}' in the mapping dictionary") from exception
+                raise ValueError(
+                    f"Unable to find the key '{elemk}' in the mapping dictionary"
+                ) from exception
 
-            list_of_strings.append((idx, f'  {key}({idx}) = {conv_to_fortran(itemval)}\n'))
+            list_of_strings.append(
+                (idx, f'  {key}({idx}) = {conv_to_fortran(itemval)}\n'))
 
         # I first have to resort, then to remove the index from the first column, finally to join the strings
         list_of_strings = list(zip(*sorted(list_of_strings)))[1]
@@ -133,11 +139,15 @@ def convert_input_to_namelist_entry(key, val, mapping=None):
                 for value in itemval[:-1]:
 
                     if not isinstance(value, (int, str)):
-                        raise ValueError('values of double nested lists should be either integers or strings')
+                        raise ValueError(
+                            'values of double nested lists should be either integers or strings'
+                        )
 
                     if isinstance(value, str):
                         if mapping is None:
-                            raise ValueError('cannot map the string value because no mapping was defined')
+                            raise ValueError(
+                                'cannot map the string value because no mapping was defined'
+                            )
 
                         if value not in mapping:
                             raise ValueError(
@@ -153,7 +163,8 @@ def convert_input_to_namelist_entry(key, val, mapping=None):
             else:
                 idx_string = f'{idx + 1}'
 
-            list_of_strings.append(f'  {key}({idx_string}) = {conv_to_fortran(itemval)}\n')
+            list_of_strings.append(
+                f'  {key}({idx_string}) = {conv_to_fortran(itemval)}\n')
 
         return ''.join(list_of_strings)
 

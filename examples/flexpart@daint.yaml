@@ -1,6 +1,6 @@
 ---
 label: flexpart
-description: ""  
+description: ""
 input_plugin: flexpart.cosmo
 on_computer: true
 computer: daint
