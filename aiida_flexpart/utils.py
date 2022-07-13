@@ -2,13 +2,15 @@
 """Utilties to convert between python and fortran data types and formats."""
 
 import numbers
+import importlib
+import numpy
+import jinja2
 
 
 def conv_to_fortran(val, quote_strings=True):
     """Convert a python value to a format suited for fortran input.
     :param val: the value to be read and converted to a Fortran-friendly string.
     """
-    import numpy
 
     # Note that bool should come before integer, because a boolean matches also isinstance(..., int)
     if isinstance(val, (bool, numpy.bool_)):
@@ -31,6 +33,7 @@ def conv_to_fortran(val, quote_strings=True):
         )
 
     return val_str
+
 
 def convert_input_to_namelist_entry(key, val, mapping=None):
     """Convert a key and a value, from an input parameters dictionary for a namelist calculation.
@@ -100,7 +103,9 @@ def convert_input_to_namelist_entry(key, val, mapping=None):
     if isinstance(val, dict):
 
         if mapping is None:
-            raise ValueError("If 'val' is a dictionary, you must provide also the 'mapping' parameter")
+            raise ValueError(
+                "If 'val' is a dictionary, you must provide also the 'mapping' parameter"
+            )
 
         # At difference with the case of a list, at the beginning list_of_strings
         # is a list of 2-tuples where the first element is the idx, and the
@@ -111,9 +116,12 @@ def convert_input_to_namelist_entry(key, val, mapping=None):
             try:
                 idx = mapping[elemk]
             except KeyError as exception:
-                raise ValueError(f"Unable to find the key '{elemk}' in the mapping dictionary") from exception
+                raise ValueError(
+                    f"Unable to find the key '{elemk}' in the mapping dictionary"
+                ) from exception
 
-            list_of_strings.append((idx, f'  {key}({idx}) = {conv_to_fortran(itemval)}\n'))
+            list_of_strings.append(
+                (idx, f'  {key}({idx}) = {conv_to_fortran(itemval)}\n'))
 
         # I first have to resort, then to remove the index from the first column, finally to join the strings
         list_of_strings = list(zip(*sorted(list_of_strings)))[1]
@@ -133,18 +141,21 @@ def convert_input_to_namelist_entry(key, val, mapping=None):
                 for value in itemval[:-1]:
 
                     if not isinstance(value, (int, str)):
-                        raise ValueError('values of double nested lists should be either integers or strings')
+                        raise ValueError(
+                            'values of double nested lists should be either integers or strings'
+                        )
 
                     if isinstance(value, str):
                         if mapping is None:
-                            raise ValueError('cannot map the string value because no mapping was defined')
+                            raise ValueError(
+                                'cannot map the string value because no mapping was defined'
+                            )
 
                         if value not in mapping:
                             raise ValueError(
                                 f'the nested list contained string {value} but this is not a key in the mapping'
                             )
-                        else:
-                            values.append(str(mapping[value]))
+                        values.append(str(mapping[value]))
                     else:
                         values.append(str(value))
 
@@ -153,10 +164,20 @@ def convert_input_to_namelist_entry(key, val, mapping=None):
             else:
                 idx_string = f'{idx + 1}'
 
-            list_of_strings.append(f'  {key}({idx_string}) = {conv_to_fortran(itemval)}\n')
+            list_of_strings.append(
+                f'  {key}({idx_string}) = {conv_to_fortran(itemval)}\n')
 
         return ''.join(list_of_strings)
 
     # Single value
     else:
         return f'  {key} = {conv_to_fortran(val)}\n'
+
+
+def fill_in_template_file(folder, fname, data):
+    """Create an input file based on the standard templates."""
+    with folder.open(fname, 'w') as infile:
+        template = jinja2.Template(
+            importlib.resources.read_text('aiida_flexpart.templates',
+                                          fname + '.j2'))
+        infile.write(template.render(data=data))
