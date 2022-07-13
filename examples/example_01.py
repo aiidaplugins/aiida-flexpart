@@ -122,6 +122,9 @@ def test_run(flexpart_code):
     surfdepo = orm.RemoteData(
         remote_path='/users/yaa/resources/flexpart/surfdepo.t',
         computer=flexpart_code.computer)
+    meteo_path = orm.RemoteData(
+        remote_path='/scratch/snx3000/yaa/FP2AiiDA/meteo/cosmo7/',
+        computer=flexpart_code.computer)
 
     # Set up calculation.
     calc = CalculationFactory('flexpart.cosmo')
@@ -141,6 +144,7 @@ def test_run(flexpart_code):
     builder.outgrid = outgrid
     builder.outgrid_nest = outgrid_nest
     builder.species = species
+    builder.meteo_path = meteo_path
     builder.land_use = {
         'glc': glc,
         'surfdata': surfdata,

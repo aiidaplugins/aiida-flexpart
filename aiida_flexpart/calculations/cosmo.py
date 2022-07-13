@@ -49,13 +49,13 @@ class FlexpartCosmoCalculation(CalcJob):
             help='Input file for the Lagrangian particle dispersion model FLEXPART. Nested output grid.'
             )
         spec.input('species', valid_type=orm.RemoteData, required=True)
-
+        spec.input('meteo_path', valid_type=orm.RemoteData,
+        required=True, help='Path to the folder containing the meteorological input data.')
         spec.input('metadata.options.output_filename', valid_type=str, default='aiida.out', required=True)
         spec.input_namespace('land_use', valid_type=orm.RemoteData, required=False, dynamic=True, help='#TODO')
 
         spec.output('output_file', valid_type=orm.SinglefileData, required=True, help='The output file of a calculation')
         spec.exit_code(300, 'ERROR_MISSING_OUTPUT_FILES', message='Calculation did not produce all expected output files.')
-        #spec.default_output_node = 'output_file'
 
     @classmethod
     def _deal_with_time(cls, command_dict):
@@ -100,8 +100,8 @@ class FlexpartCosmoCalculation(CalcJob):
         codeinfo.cmdline_params = [
             './', # Folder containing the inputs.
             './', # Folder containing the outputs.
-            '/scratch/snx3000/yaa/FP2AiiDA/meteo/cosmo7/', # Large data input folder
-            '/scratch/snx3000/yaa/FP2AiiDA/meteo/cosmo7/AVAILABLE',
+            str(pathlib.Path(self.inputs.meteo_path.get_remote_path())),
+            str(pathlib.Path(self.inputs.meteo_path.get_remote_path()) / 'AVAILABLE'),
             # File that lists all the individual input files that are available and assigns them a date
         ]
         codeinfo.code_uuid = self.inputs.code.uuid
