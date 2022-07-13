@@ -27,6 +27,12 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
                    help='Integration time in hours')
         spec.input('outgrid', valid_type=orm.Dict)
         spec.input('outgrid_nest', valid_type=orm.Dict, required=False)
+        spec.input(
+            'meteo_path',
+            valid_type=orm.RemoteData,
+            required=True,
+            help='Path to the folder containing the meteorological input data.'
+        )
         spec.input('species', valid_type=orm.RemoteData, required=True)
         spec.input_namespace('land_use',
                              valid_type=orm.RemoteData,
@@ -122,7 +128,7 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
             })
 
         self.ctx.locations = self.inputs.locations
-
+        self.ctx.meteo_path = self.inputs.meteo_path
         self.ctx.species = self.inputs.species
         self.ctx.land_use = self.inputs.land_use
 
@@ -143,6 +149,7 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
             builder.outgrid = self.ctx.outgrid
             builder.outgrid_nest = self.ctx.outgrid_nest
             builder.species = self.ctx.species
+            builder.meteo_path = self.ctx.meteo_path
             builder.land_use = self.ctx.land_use
 
             builder.metadata = {
