@@ -135,7 +135,7 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
     def run_simulation(self):
         """Run calculations for equation of state."""
         # Set up calculation.
-        for date in self.inputs.simulation_dates:
+        for index, date in enumerate(self.inputs.simulation_dates):
             builder = FlexpartCalculation.get_builder()
             new_dict = self.ctx.command.get_dict()
             new_dict['simulation_date'] = date
@@ -158,7 +158,7 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
 
             # Ask the workflow to continue when the results are ready and store them in the context
             running = self.submit(builder)
-            return self.to_context(calculation=running)
+            self.to_context(**{f"calculation_{index}":running})
 
     def results(self):
         """Process results."""
