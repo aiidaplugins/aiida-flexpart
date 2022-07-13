@@ -6,6 +6,7 @@ Register calculations via the "aiida.calculations" entry point in setup.json.
 """
 import importlib
 import datetime
+import pathlib
 import jinja2
 
 from aiida import orm
@@ -56,6 +57,36 @@ class FlexpartCosmoCalculation(CalcJob):
         spec.exit_code(300, 'ERROR_MISSING_OUTPUT_FILES', message='Calculation did not produce all expected output files.')
         #spec.default_output_node = 'output_file'
 
+    @classmethod
+    def _deal_with_time(cls, command_dict):
+        """Dealing with simulation times."""
+        simulation_beginning_date = datetime.datetime.strptime(command_dict.pop('simulation_date'),'%Y-%m-%d %H:%M:%S')
+        age_class_time = datetime.timedelta(seconds=command_dict.pop('age_class'))
+        release_chunk = datetime.timedelta(seconds=command_dict.pop('release_chunk'))
+        release_duration = datetime.timedelta(seconds=command_dict.pop('release_duration'))
+        release_beginning_date = simulation_beginning_date
+        release_ending_date = simulation_beginning_date + release_duration * command_dict['simulation_direction']
+        simulation_ending_date = release_ending_date + age_class_time * command_dict['simulation_direction']
+
+        # FLEXPART requires the beginning date to be lower than the ending date.
+        if simulation_beginning_date > simulation_ending_date:
+            simulation_beginning_date, simulation_ending_date = simulation_ending_date, simulation_beginning_date
+        if release_beginning_date > release_ending_date:
+            release_beginning_date, release_ending_date = release_ending_date, release_beginning_date
+
+        command_dict['simulation_beginning_date'] = [
+            f'{simulation_beginning_date:%Y%m%d}',
+            f'{simulation_beginning_date:%H%M%S}'
+            ]
+        command_dict['simulation_ending_date'] = [
+            f'{simulation_ending_date:%Y%m%d}',
+            f'{simulation_ending_date:%H%M%S}'
+            ]
+        return {
+            'beginning_date': release_beginning_date,
+            'ending_date': release_ending_date,
+            'chunk': release_chunk
+            } , age_class_time
 
     def prepare_for_submission(self, folder):
         """
@@ -88,50 +119,26 @@ class FlexpartCosmoCalculation(CalcJob):
                 infile.write(convert_input_to_namelist_entry(key, value))
             infile.write('/\n')
 
-
-        # Dealing with simulation times.
         command_dict = self.inputs.model_settings.command.get_dict()
-        simulation_beginning_date = datetime.datetime.strptime(command_dict.pop('simulation_date'),'%Y-%m-%d %H:%M:%S')
-        age_class_time = datetime.timedelta(seconds=command_dict.pop('age_class'))
-        release_chunk = datetime.timedelta(seconds=command_dict.pop('release_chunk'))
-        release_duration = datetime.timedelta(seconds=command_dict.pop('release_duration'))
-        release_beginning_date = simulation_beginning_date
-        release_ending_date = simulation_beginning_date + release_duration * command_dict['simulation_direction']
-        simulation_ending_date = release_ending_date + age_class_time * command_dict['simulation_direction']
 
-        # FLEXPART requires the beginning date to be lower than the ending date.
-        if simulation_beginning_date > simulation_ending_date:
-            simulation_beginning_date, simulation_ending_date = simulation_ending_date, simulation_beginning_date
-        if release_beginning_date > release_ending_date:
-            release_beginning_date, release_ending_date = release_ending_date, release_beginning_date
-
-        command_dict['simulation_beginning_date'] = [
-            f'{simulation_beginning_date:%Y%m%d}',
-            f'{simulation_beginning_date:%H%M%S}'
-            ]
-        command_dict['simulation_ending_date'] = [
-            f'{simulation_ending_date:%Y%m%d}',
-            f'{simulation_ending_date:%H%M%S}'
-            ]
-
-        # Dealing with locations.
-        locations = self.inputs.model_settings.locations.get_dict()
+        # Deal with simulation times.
+        release, age_class_time = self._deal_with_time(command_dict)
 
         # Fill in the releases file.
         with folder.open('RELEASES', 'w') as infile:
             time_chunks = []
-            current_time = release_beginning_date + release_chunk
-            while current_time <= release_ending_date:
+            current_time = release['beginning_date'] + release['chunk']
+            while current_time <= release['ending_date']:
                 time_chunks.append({
-                    'begin': [f'{current_time-release_chunk:%Y%m%d}', f'{current_time-release_chunk:%H%M%S}'],
+                    'begin': [f'{current_time-release["chunk"]:%Y%m%d}', f'{current_time-release["chunk"]:%H%M%S}'],
                     'end': [f'{current_time:%Y%m%d}', f'{current_time:%H%M%S}'],
                 })
-                current_time += release_chunk
+                current_time += release['chunk']
 
             template = jinja2.Template(importlib.resources.read_text('aiida_flexpart.templates', 'RELEASES.j2'))
             infile.write(template.render(
                 time_chunks=time_chunks,
-                locations=locations,
+                locations=self.inputs.model_settings.locations,
                 release_settings=self.inputs.model_settings.release_settings.get_dict()
                 )
             )
@@ -152,7 +159,6 @@ class FlexpartCosmoCalculation(CalcJob):
         # Fill in the OUTGRID file.
         fill_in_template_file(folder, 'OUTGRID', self.inputs.outgrid.get_dict())
 
-
         calcinfo.remote_symlink_list = []
         calcinfo.remote_symlink_list.append((
             self.inputs.species.computer.uuid,
@@ -161,11 +167,9 @@ class FlexpartCosmoCalculation(CalcJob):
             ))
 
         # Dealing with land_use input namespace.
-        for _, obj in self.inputs.land_use.items():
-            computer_uuid = obj.computer.uuid
-            file_path = obj.get_remote_path()
-            file_name = file_path.split('/')[-1]
-            calcinfo.remote_symlink_list.append((computer_uuid, file_path, file_name))
+        for _, value in self.inputs.land_use.items():
+            file_path = value.get_remote_path()
+            calcinfo.remote_symlink_list.append((value.computer.uuid, file_path, pathlib.Path(file_path).name))
 
         calcinfo.retrieve_list = ['grid_time_*.nc', 'aiida.out']
 
