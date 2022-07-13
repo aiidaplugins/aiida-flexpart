@@ -138,7 +138,7 @@ class FlexpartCosmoCalculation(CalcJob):
             template = jinja2.Template(importlib.resources.read_text('aiida_flexpart.templates', 'RELEASES.j2'))
             infile.write(template.render(
                 time_chunks=time_chunks,
-                locations=self.inputs.model_settings.locations,
+                locations=self.inputs.model_settings.locations.get_dict(),
                 release_settings=self.inputs.model_settings.release_settings.get_dict()
                 )
             )
