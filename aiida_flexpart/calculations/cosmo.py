@@ -54,7 +54,7 @@ class FlexpartCosmoCalculation(CalcJob):
         spec.input('metadata.options.output_filename', valid_type=str, default='aiida.out', required=True)
         spec.input_namespace('land_use', valid_type=orm.RemoteData, required=False, dynamic=True, help='#TODO')
 
-        spec.output('output_file', valid_type=orm.SinglefileData, required=True, help='The output file of a calculation')
+        spec.outputs.dynamic = True
         spec.exit_code(300, 'ERROR_MISSING_OUTPUT_FILES', message='Calculation did not produce all expected output files.')
 
     @classmethod
