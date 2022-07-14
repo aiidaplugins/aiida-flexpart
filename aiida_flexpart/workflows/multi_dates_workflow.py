@@ -40,7 +40,8 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
                              dynamic=True,
                              help='#TODO')
         # Outputs
-        spec.output('output_file', valid_type=orm.SinglefileData)
+        #spec.output('output_file', valid_type=orm.SinglefileData)
+        spec.outputs.dynamic = True
         # What the workflow will do, step-by-step
         spec.outline(
             cls.setup,
@@ -135,7 +136,7 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
     def run_simulation(self):
         """Run calculations for equation of state."""
         # Set up calculation.
-        for index, date in enumerate(self.inputs.simulation_dates):
+        for date in self.inputs.simulation_dates:
             builder = FlexpartCalculation.get_builder()
             new_dict = self.ctx.command.get_dict()
             new_dict['simulation_date'] = date
@@ -158,8 +159,10 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
 
             # Ask the workflow to continue when the results are ready and store them in the context
             running = self.submit(builder)
-            self.to_context(**{f"calculation_{index}":running})
+            self.to_context(calculations=engine.append_(running))
 
     def results(self):
         """Process results."""
-        self.out('output_file', self.ctx.calculation.outputs.output_file)
+        for indx, calculation in enumerate(self.ctx.calculations):
+            self.out(f'calculation_{indx}_output_file',
+                     calculation.outputs.output_file)
