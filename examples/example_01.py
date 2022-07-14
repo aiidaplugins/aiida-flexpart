@@ -9,6 +9,7 @@ import click
 import yaml
 from aiida import cmdline, engine, orm
 from aiida.plugins import CalculationFactory
+from aiida.common.datastructures import StashMode
 
 INPUT_DIR = pathlib.Path(__file__).resolve().parent / 'input_files'
 
@@ -37,7 +38,7 @@ def test_run(flexpart_code):
             'simulation_direction':
             -1,  # 1 for forward simulation, -1 for backward simulation.
             'simulation_date':
-            '2021-01-02 00:00:00',  # YYYY-MM-DD HH:MI:SS beginning date of simulation.
+            '2020-12-31 00:00:00',  # YYYY-MM-DD HH:MI:SS beginning date of simulation.
             'age_class': 3600 * 24,  # seconds
             'release_chunk': 3600 * 3,  # seconds
             'release_duration': 3600 * 24,  # seconds
@@ -151,9 +152,13 @@ def test_run(flexpart_code):
         'surfdepo': surfdepo,
     }
 
-    builder.metadata = {
-        'description': 'Test job submission with the aiida_flexpart plugin'
+    builder.metadata.description = 'Test job submission with the aiida_flexpart plugin'
+    builder.metadata.options.stash = {
+        'source_list': ['aiida.out'],
+        'target_base': '/users/yaa/aiida_stash',
+        'stash_mode': StashMode.COPY.value,
     }
+
     # builder.metadata.dry_run = True
     # builder.metadata.store_provenance = False
     engine.run(builder)

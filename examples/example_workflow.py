@@ -7,6 +7,7 @@ import datetime
 import click
 import yaml
 from aiida import orm, plugins, engine, cmdline
+from aiida.common.datastructures import StashMode
 
 
 def read_yaml_data(data_filename: str, names=None) -> dict:
@@ -98,6 +99,12 @@ def test_run(flexpart_code):
         'glc': glc,
         'surfdata': surfdata,
         'surfdepo': surfdepo,
+    }
+
+    builder.flexpart.metadata.options.stash = {
+        'source_list': ['aiida.out'],
+        'target_base': '/users/yaa/aiida_stash',
+        'stash_mode': StashMode.COPY.value,
     }
     engine.run(builder)
 
