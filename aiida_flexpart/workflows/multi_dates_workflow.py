@@ -39,6 +39,11 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
                              required=False,
                              dynamic=True,
                              help='#TODO')
+
+        spec.expose_inputs(FlexpartCalculation,
+                           include=['metadata.options'],
+                           namespace='flexpart')
+
         # Outputs
         #spec.output('output_file', valid_type=orm.SinglefileData)
         spec.outputs.dynamic = True
@@ -153,9 +158,10 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
             builder.meteo_path = self.ctx.meteo_path
             builder.land_use = self.ctx.land_use
 
-            builder.metadata = {
-                'description': 'Test workflow to submit a flexpart calculation'
-            }
+            builder.metadata.description = 'Test workflow to submit a flexpart calculation'
+
+            # Walltime, memory, and resources.
+            builder.metadata.options = self.inputs.flexpart.metadata.options
 
             # Ask the workflow to continue when the results are ready and store them in the context
             running = self.submit(builder)
