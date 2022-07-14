@@ -4,6 +4,7 @@ Calculations provided by aiida_flexpart.
 
 Register calculations via the "aiida.calculations" entry point in setup.json.
 """
+import os
 import importlib
 import datetime
 import pathlib
@@ -88,7 +89,7 @@ class FlexpartCosmoCalculation(CalcJob):
             'chunk': release_chunk
             } , age_class_time
 
-    def prepare_for_submission(self, folder):
+    def prepare_for_submission(self, folder):  # pylint: disable=too-many-locals
         """
         Create input files.
 
@@ -96,12 +97,14 @@ class FlexpartCosmoCalculation(CalcJob):
             needed by the calculation.
         :return: `aiida.common.datastructures.CalcInfo` instance
         """
+
+        meteo_path = pathlib.Path(self.inputs.meteo_path.get_remote_path())
         codeinfo = datastructures.CodeInfo()
         codeinfo.cmdline_params = [
             './', # Folder containing the inputs.
             './', # Folder containing the outputs.
-            str(pathlib.Path(self.inputs.meteo_path.get_remote_path())),
-            str(pathlib.Path(self.inputs.meteo_path.get_remote_path()) / 'AVAILABLE'),
+            f'{meteo_path}{os.sep}',
+            str(meteo_path / 'AVAILABLE'),
             # File that lists all the individual input files that are available and assigns them a date
         ]
         codeinfo.code_uuid = self.inputs.code.uuid
