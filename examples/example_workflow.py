@@ -102,7 +102,7 @@ def test_run(flexpart_code):
     }
 
     builder.flexpart.metadata.options.stash = {
-        'source_list': ['aiida.out'],
+        'source_list': ['aiida.out', 'grid_time_*.nc'],
         'target_base': '/users/yaa/aiida_stash',
         'stash_mode': StashMode.COPY.value,
     }
