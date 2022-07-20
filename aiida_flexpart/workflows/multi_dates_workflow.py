@@ -12,7 +12,7 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
         """Specify inputs and outputs."""
         super().define(spec)
         # Inputs
-        spec.input('code', valid_type=orm.Code)
+        spec.input('code', valid_type=orm.AbstractCode)
         spec.input('simulation_dates',
                    valid_type=orm.List,
                    help='A list of the starting dates of the simulations')
