@@ -154,7 +154,7 @@ def test_run(flexpart_code):
 
     builder.metadata.description = 'Test job submission with the aiida_flexpart plugin'
     builder.metadata.options.stash = {
-        'source_list': ['aiida.out'],
+        'source_list': ['aiida.out', 'grid_time_*.nc'],
         'target_base': '/users/yaa/aiida_stash',
         'stash_mode': StashMode.COPY.value,
     }
