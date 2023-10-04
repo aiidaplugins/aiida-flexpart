@@ -15,10 +15,10 @@
     "version": "0.1.0a0",
     "entry_points": {
         "aiida.calculations": [
-            "flexpart.cosmo = aiida_flexpart.calculations.cosmo:FlexpartCosmoCalculation"
+            "flexpart.cosmo = aiida_flexpart.calculations.flexpart_cosmo:FlexpartCosmoCalculation"
         ],
         "aiida.parsers": [
-            "flexpart.cosmo = aiida_flexpart.parsers.cosmo:FlexpartCosmoParser"
+            "flexpart.cosmo = aiida_flexpart.parsers.flexpart_cosmo:FlexpartCosmoParser"
         ],
         "aiida.workflows": [
             "flexpart.multi_dates = aiida_flexpart.workflows.multi_dates_workflow:FlexpartMultipleDatesWorkflow"

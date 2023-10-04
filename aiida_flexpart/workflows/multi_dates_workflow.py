@@ -1,8 +1,31 @@
 # -*- coding: utf-8 -*-
 """Flexpart multi-dates WorkChain."""
 from aiida import engine, plugins, orm
+from aiida_shell import launch_shell_job
+from aiida.engine import calcfunction, while_
+import datetime
 
 FlexpartCalculation = plugins.CalculationFactory('flexpart.cosmo')
+
+def get_simulation_period(date,
+                   age_class,
+                   release_duration,
+                   simulation_direction
+                   ):
+        """Dealing with simulation times."""
+        #get dates of all range
+        simulation_beginning_date = datetime.datetime.strptime(date,'%Y-%m-%d %H:%M:%S')
+        age_class_time = datetime.timedelta(seconds=age_class)
+        release_duration = datetime.timedelta(seconds=release_duration)
+        release_beginning_date = simulation_beginning_date
+        release_ending_date = simulation_beginning_date + release_duration * simulation_direction
+        simulation_ending_date = release_ending_date + age_class_time * simulation_direction
+
+        # FLEXPART requires the beginning date to be lower than the ending date.
+        if simulation_beginning_date > simulation_ending_date:
+            simulation_beginning_date, simulation_ending_date = simulation_ending_date, simulation_beginning_date
+        
+        return datetime.datetime.strftime(simulation_ending_date,'%Y%m%d%H'), datetime.datetime.strftime(simulation_beginning_date,'%Y%m%d%H')
 
 
 class FlexpartMultipleDatesWorkflow(engine.WorkChain):
@@ -27,12 +50,16 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
                    help='Integration time in hours')
         spec.input('outgrid', valid_type=orm.Dict)
         spec.input('outgrid_nest', valid_type=orm.Dict, required=False)
-        spec.input(
-            'meteo_path',
-            valid_type=orm.RemoteData,
-            required=True,
-            help='Path to the folder containing the meteorological input data.'
-        )
+
+        spec.input('model', valid_type=orm.Str, required=True,
+                   help=' ')
+        spec.input('gribdir', valid_type=orm.Str, required=True,
+                   help=' ')
+
+        spec.input('outgrid', valid_type=orm.Dict)
+        spec.input('meteo_path', valid_type=orm.RemoteData,
+        required=True, help='Path to the folder containing the meteorological input data.')
+        
         spec.input('species', valid_type=orm.RemoteData, required=True)
         spec.input_namespace('land_use',
                              valid_type=orm.RemoteData,
@@ -50,12 +77,18 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
         # What the workflow will do, step-by-step
         spec.outline(
             cls.setup,
+            while_(cls.condition)(
+            cls.prepare_meteo_folder,
             cls.run_simulation,
+            ),
             cls.results,
         )
+    def condition(self):
+        return True if self.ctx.index < len(self.ctx.simulation_dates) else False
 
     def setup(self):
         """Prepare a simulation."""
+        self.ctx.index = 0
         command = {
             'simulation_direction':
             -1,  # 1 for forward simulation, -1 for backward simulation.
@@ -134,17 +167,36 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
             })
 
         self.ctx.locations = self.inputs.locations
-        self.ctx.meteo_path = self.inputs.meteo_path
         self.ctx.species = self.inputs.species
         self.ctx.land_use = self.inputs.land_use
+        self.ctx.simulation_dates=self.inputs.simulation_dates
+
+     
+    def prepare_meteo_folder(self):
+        code = orm.load_code('test_bash_2@daint-direct')
+       
+        e_date, s_date = get_simulation_period(self.ctx.simulation_dates[self.ctx.index],
+                                    self.ctx.command.get_dict()["age_class"],
+                                    self.ctx.command.get_dict()["release_duration"],
+                                    self.ctx.command.get_dict()["simulation_direction"])
+        
+        results, node = launch_shell_job(
+                    code,                           
+                    arguments=' -s {sdate} -e {edate} -g {gribdir} -m {model} -a',
+                    nodes={
+                        'sdate': orm.Str(s_date),
+                        'edate': orm.Str(e_date),
+                        'gribdir': self.inputs.gribdir,
+                        'model': self.inputs.model
+                    })
 
     def run_simulation(self):
-        """Run calculations for equation of state."""
-        # Set up calculation.
-        for date in self.inputs.simulation_dates:
+            """Run calculations for equation of state."""
+            # Set up calculation.
+        
             builder = FlexpartCalculation.get_builder()
             new_dict = self.ctx.command.get_dict()
-            new_dict['simulation_date'] = date
+            new_dict['simulation_date'] = self.ctx.simulation_dates[self.ctx.index]
             builder.code = self.inputs.code
             builder.model_settings = {
                 'release_settings': self.ctx.release_settings,
@@ -155,8 +207,9 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
             builder.outgrid = self.ctx.outgrid
             builder.outgrid_nest = self.ctx.outgrid_nest
             builder.species = self.ctx.species
-            builder.meteo_path = self.ctx.meteo_path
             builder.land_use = self.ctx.land_use
+            builder.meteo_path = self.inputs.meteo_path
+                                   
 
             builder.metadata.description = 'Test workflow to submit a flexpart calculation'
 
@@ -166,6 +219,7 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
             # Ask the workflow to continue when the results are ready and store them in the context
             running = self.submit(builder)
             self.to_context(calculations=engine.append_(running))
+            self.ctx.index += 1
 
     def results(self):
         """Process results."""

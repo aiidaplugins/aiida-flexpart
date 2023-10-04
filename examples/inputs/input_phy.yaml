@@ -1,0 +1,8 @@
+use2mTemperatures: False
+useLocalHmix: True
+localWadjust: False
+turbmesoscale: 0.0
+d_trop: 50.0
+d_strat: 0.5
+hmixmin: 50.0
+hmixmax: 4500.0

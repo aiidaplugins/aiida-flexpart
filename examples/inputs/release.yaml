@@ -1,0 +1,5 @@
+particles_per_release: 50000
+mass_per_release: 
+                - 1.0
+list_of_species: 
+                - 24
