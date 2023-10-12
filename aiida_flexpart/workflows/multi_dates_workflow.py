@@ -8,22 +8,21 @@ import datetime
 FlexpartCalculation = plugins.CalculationFactory('flexpart.cosmo')
 
 def get_simulation_period(date,
-                   age_class,
+                   age_class_time,
                    release_duration,
                    simulation_direction
                    ):
         """Dealing with simulation times."""
-        #get dates of all range
+        #initial values
         simulation_beginning_date = datetime.datetime.strptime(date,'%Y-%m-%d %H:%M:%S')
-        age_class_time = datetime.timedelta(seconds=age_class)
+        age_class_time = datetime.timedelta(seconds=age_class_time)
         release_duration = datetime.timedelta(seconds=release_duration)
-        release_beginning_date = simulation_beginning_date
-        release_ending_date = simulation_beginning_date + release_duration * simulation_direction
-        simulation_ending_date = release_ending_date + age_class_time * simulation_direction
 
-        # FLEXPART requires the beginning date to be lower than the ending date.
-        if simulation_beginning_date > simulation_ending_date:
-            simulation_beginning_date, simulation_ending_date = simulation_ending_date, simulation_beginning_date
+        if simulation_direction>0: #forward
+            simulation_ending_date=simulation_beginning_date+release_duration+age_class_time
+        else: #backward
+           simulation_ending_date=release_duration+simulation_beginning_date
+           simulation_beginning_date-=age_class_time
         
         return datetime.datetime.strftime(simulation_ending_date,'%Y%m%d%H'), datetime.datetime.strftime(simulation_beginning_date,'%Y%m%d%H')
 
@@ -88,6 +87,7 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
 
     def setup(self):
         """Prepare a simulation."""
+        self.report('starting setup')
         self.ctx.index = 0
         command = {
             'simulation_direction':
@@ -174,12 +174,12 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
      
     def prepare_meteo_folder(self):
         code = orm.load_code('test_bash_2@daint-direct')
-       
+        
         e_date, s_date = get_simulation_period(self.ctx.simulation_dates[self.ctx.index],
                                     self.ctx.command.get_dict()["age_class"],
                                     self.ctx.command.get_dict()["release_duration"],
                                     self.ctx.command.get_dict()["simulation_direction"])
-        
+        self.report(f'prepare meteo from {s_date} to {e_date}')
         results, node = launch_shell_job(
                     code,                           
                     arguments=' -s {sdate} -e {edate} -g {gribdir} -m {model} -a',
@@ -193,7 +193,7 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
     def run_simulation(self):
             """Run calculations for equation of state."""
             # Set up calculation.
-        
+            self.report('starting flexpart cosmo')
             builder = FlexpartCalculation.get_builder()
             new_dict = self.ctx.command.get_dict()
             new_dict['simulation_date'] = self.ctx.simulation_dates[self.ctx.index]
