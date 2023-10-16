@@ -16,7 +16,7 @@ def get_simulation_period(date,
         #initial values
         simulation_beginning_date = datetime.datetime.strptime(date,'%Y-%m-%d %H:%M:%S')
         age_class_time = datetime.timedelta(seconds=age_class_time)
-        release_duration = datetime.timedelta(seconds=release_duration)
+        release_duration = datetime.timedelta(seconds=release_duration+3600)
 
         if simulation_direction>0: #forward
             simulation_ending_date=simulation_beginning_date+release_duration+age_class_time

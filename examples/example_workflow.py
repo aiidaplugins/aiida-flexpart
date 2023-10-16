@@ -55,7 +55,7 @@ def simulation_dates_parser(date_list: list) -> list:
 def test_run(flexpart_code):
     """Run workflow."""
     user_name='lfernand'
-    simulation_dates = simulation_dates_parser(['2021-01-01, 2021-01-02'])
+    simulation_dates = simulation_dates_parser(['2021-01-02'])
 
     # Links to the remote files/folders.
     glc = orm.RemoteData(remote_path=f'/users/{user_name}/resources/flexpart/GLC2000',
