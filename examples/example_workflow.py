@@ -55,7 +55,7 @@ def simulation_dates_parser(date_list: list) -> list:
 def test_run(flexpart_code):
     """Run workflow."""
     user_name='lfernand'
-    simulation_dates = simulation_dates_parser(['2021-01-02'])
+    simulation_dates = simulation_dates_parser(['2020-02-05'])
 
     # Links to the remote files/folders.
     glc = orm.RemoteData(remote_path=f'/users/{user_name}/resources/flexpart/GLC2000',
@@ -77,7 +77,7 @@ def test_run(flexpart_code):
     workflow = plugins.WorkflowFactory('flexpart.multi_dates')
     builder = workflow.get_builder()
     builder.fcosmo_code = flexpart_code
-    builder.check_meteo_cosmo_code =  orm.load_code('test_bash_2@daint-direct')
+    builder.check_meteo_cosmo_code =  orm.load_code('check-cosmo-data@daint-direct-106')
     builder.simulation_dates = simulation_dates
 
     builder.model=orm.Str('cosmo7')
@@ -115,7 +115,7 @@ def test_run(flexpart_code):
 
     builder.flexpart.metadata.options.stash = {
         'source_list': ['aiida.out','partposit_inst', 'header', 'grid_time_*.nc'],
-        'target_base': '/store/empa/em05/lfernand/aiida_stash',
+        'target_base': f'/store/empa/em05/{user_name}/aiida_stash',
         'stash_mode': StashMode.COPY.value,
     }
     engine.run(builder)
