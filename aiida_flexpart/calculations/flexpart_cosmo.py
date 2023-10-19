@@ -33,6 +33,7 @@ class FlexpartCosmoCalculation(CalcJob):
            #'max_wallclock_seconds': 1800
         }
 
+        #spec.input('metadata.options.max_wallclock_seconds', valid_type=Int, default=1800)
         spec.input('metadata.options.parser_name', valid_type=str, default='flexpart.cosmo')
 
         # new ports
