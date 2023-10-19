@@ -30,6 +30,7 @@ class FlexpartCosmoCalculation(CalcJob):
         spec.inputs['metadata']['options']['resources'].default = {
             'num_machines': 1,
             'num_mpiprocs_per_machine': 1,
+           #'max_wallclock_seconds': 1800
         }
 
         spec.input('metadata.options.parser_name', valid_type=str, default='flexpart.cosmo')

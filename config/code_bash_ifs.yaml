@@ -1,9 +1,9 @@
 ---
-label: 'bash_ifs'
+label: 'check-ifs-data'
 description: ''
 default_calc_job_plugin: 'core.shells'
 filepath_executable: '/users/lfernand/flexpart_processing_chain/scripts/check_ifs_data.bash'
-computer: daint-direct
+computer: daint-direct-106
 prepend_text: |
         module load daint-mc
         module switch PrgEnv-cray PrgEnv-gnu

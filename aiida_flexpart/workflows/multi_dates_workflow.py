@@ -124,6 +124,13 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
                         'gribdir': self.inputs.gribdir,
                         'model': self.inputs.model
                     })
+        
+        if node.is_finished_ok:
+            self.report(f'meteo files ready')
+        """    return True
+        else:
+            self.report('preparing meteo files failed. Terminating workflow.')
+            return False"""
 
     def run_simulation(self):
             """Run calculations for equation of state."""
