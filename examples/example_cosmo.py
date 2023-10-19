@@ -32,6 +32,7 @@ def test_run(flexpart_code):
     """
 
     # Prepare input parameters
+    user_name='lfernand'
 
     command = orm.Dict(
         dict=read_yaml_data('inputs/command.yaml'))
@@ -53,19 +54,19 @@ def test_run(flexpart_code):
                                                      'TEST_200']))
 
     # Links to the remote files/folders.
-    glc = orm.RemoteData(remote_path='/users/lfernand/resources/flexpart/GLC2000',
+    glc = orm.RemoteData(remote_path=f'/users/{user_name}/resources/flexpart/GLC2000',
                          computer=flexpart_code.computer)
     species = orm.RemoteData(
-        remote_path='/users/lfernand/resources/flexpart/SPECIES',
+        remote_path=f'/users/{user_name}/resources/flexpart/SPECIES',
         computer=flexpart_code.computer)
     surfdata = orm.RemoteData(
-        remote_path='/users/lfernand/resources/flexpart/surfdata.t',
+        remote_path=f'/users/{user_name}/resources/flexpart/surfdata.t',
         computer=flexpart_code.computer)
     surfdepo = orm.RemoteData(
-        remote_path='/users/lfernand/resources/flexpart/surfdepo.t',
+        remote_path=f'/users/{user_name}/resources/flexpart/surfdepo.t',
         computer=flexpart_code.computer)
     meteo_path = orm.RemoteData(
-        remote_path='/scratch/snx3000/lfernand/FLEXPART_input/cosmo7/',
+        remote_path=f'/scratch/snx3000/{user_name}/FLEXPART_input/cosmo7/',
         computer=flexpart_code.computer)
 
     # Set up calculation.
@@ -95,7 +96,7 @@ def test_run(flexpart_code):
     builder.metadata.description = 'Test job submission with the aiida_flexpart plugin'
     builder.metadata.options.stash = {
         'source_list': ['aiida.out','partposit_inst', 'header', 'grid_time_*.nc'],
-        'target_base': '/store/empa/em05/lfernand/aiida_stash',
+        'target_base': f'/store/empa/em05/{user_name}/aiida_stash',
         'stash_mode': StashMode.COPY.value,
     }
 
