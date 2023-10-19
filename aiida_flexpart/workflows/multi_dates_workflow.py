@@ -2,7 +2,7 @@
 """Flexpart multi-dates WorkChain."""
 from aiida import engine, plugins, orm
 from aiida_shell import launch_shell_job
-from aiida.engine import calcfunction, while_
+from aiida.engine import calcfunction, while_, if_
 import datetime
 
 FlexpartCalculation = plugins.CalculationFactory('flexpart.cosmo')
@@ -77,8 +77,9 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
         spec.outline(
             cls.setup,
             while_(cls.condition)(
-            cls.prepare_meteo_folder,
-            cls.run_simulation,
+            if_(cls.prepare_meteo_folder)(
+                cls.run_simulation
+                )
             ),
             cls.results,
         )
@@ -124,13 +125,8 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
                         'gribdir': self.inputs.gribdir,
                         'model': self.inputs.model
                     })
-        
-        if node.is_finished_ok:
-            self.report(f'meteo files ready')
-        """    return True
-        else:
-            self.report('preparing meteo files failed. Terminating workflow.')
-            return False"""
+
+        return node.is_finished_ok
 
     def run_simulation(self):
             """Run calculations for equation of state."""
