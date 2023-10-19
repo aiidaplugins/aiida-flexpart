@@ -1,0 +1,18 @@
+---
+label: daint
+hostname: daint.cscs.ch
+description: Piz Daint supercomputer at CSCS Lugano, Switzerland, using the hybrid partition.
+transport: core.ssh
+scheduler: core.slurm
+shebang: '#!/bin/bash -l'
+mpiprocs_per_machine: 36
+work_dir: /scratch/snx3000/{username}/aiida/
+mpirun_command: srun -n {tot_num_mpiprocs}
+prepend_text: |
+    #SBATCH --partition=normal
+    #SBATCH --account=em05
+    #SBATCH --constraint=mc
+    export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK:-1}
+    source $MODULESHOME/init/bash
+    ulimit -s unlimited
+append_text: ""

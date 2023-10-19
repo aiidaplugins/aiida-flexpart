@@ -32,6 +32,7 @@ class FlexpartCosmoCalculation(CalcJob):
             'num_mpiprocs_per_machine': 1,
         }
 
+        spec.input('metadata.options.max_wallclock_seconds', valid_type=int, default=1800)
         spec.input('metadata.options.parser_name', valid_type=str, default='flexpart.cosmo')
 
         # new ports
@@ -61,19 +62,22 @@ class FlexpartCosmoCalculation(CalcJob):
     @classmethod
     def _deal_with_time(cls, command_dict):
         """Dealing with simulation times."""
+        
+        #initial values
         simulation_beginning_date = datetime.datetime.strptime(command_dict.pop('simulation_date'),'%Y-%m-%d %H:%M:%S')
         age_class_time = datetime.timedelta(seconds=command_dict.pop('age_class'))
         release_chunk = datetime.timedelta(seconds=command_dict.pop('release_chunk'))
         release_duration = datetime.timedelta(seconds=command_dict.pop('release_duration'))
-        release_beginning_date = simulation_beginning_date
-        release_ending_date = simulation_beginning_date + release_duration * command_dict['simulation_direction']
-        simulation_ending_date = release_ending_date + age_class_time * command_dict['simulation_direction']
+        
+        #releases start and end times
+        release_beginning_date=simulation_beginning_date
+        release_ending_date=release_beginning_date+release_duration
 
-        # FLEXPART requires the beginning date to be lower than the ending date.
-        if simulation_beginning_date > simulation_ending_date:
-            simulation_beginning_date, simulation_ending_date = simulation_ending_date, simulation_beginning_date
-        if release_beginning_date > release_ending_date:
-            release_beginning_date, release_ending_date = release_ending_date, release_beginning_date
+        if command_dict['simulation_direction']>0: #forward
+            simulation_ending_date=release_ending_date+age_class_time
+        else: #backward
+           simulation_ending_date=release_ending_date
+           simulation_beginning_date-=age_class_time
 
         command_dict['simulation_beginning_date'] = [
             f'{simulation_beginning_date:%Y%m%d}',
