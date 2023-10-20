@@ -29,7 +29,7 @@ def test_run(flexpart_code):
     # Prepare input parameters
 
     command = orm.Dict(
-        dict=read_yaml_data('inputs/command.yml'))
+        dict=read_yaml_data('inputs/command.yaml'))
 
     outgrid = orm.Dict(
         dict=read_yaml_data('inputs/outgrid.yaml', names=['Europe'])['Europe'])
@@ -38,14 +38,14 @@ def test_run(flexpart_code):
         dict=read_yaml_data('inputs/outgrid_nest.yaml', names=['Europe'])['Europe'])
 
     release_settings = orm.Dict(
-        dict=read_yaml_data('inputs/release.yml'))
+        dict=read_yaml_data('inputs/release.yaml'))
     
     locations = orm.Dict(
         dict=read_yaml_data('inputs/locations.yaml', names=['TEST_32',
                                                      'TEST_200']))
 
     # Links to the remote files/folders.
-    glc = orm.RemoteData(remote_path=f'/users/{user_name}/resources/flexpart/GLC2000',
+    glc = orm.RemoteData(remote_path=f'/users/{user_name}/resources/flexpart/IGBP_int1.dat',
                          computer=flexpart_code.computer)
     species = orm.RemoteData(
         remote_path=f'/users/{user_name}/resources/flexpart/SPECIES',
@@ -57,7 +57,7 @@ def test_run(flexpart_code):
         remote_path=f'/users/{user_name}/resources/flexpart/surfdepo.t',
         computer=flexpart_code.computer)
     meteo_path = orm.RemoteData(
-        remote_path=f'/scratch/snx3000/{user_name}/FLEXPART_input/',
+        remote_path=f'/scratch/snx3000/{user_name}/FLEXPART_input/IFS_GL_05',
         computer=flexpart_code.computer)
 
     # Set up calculation.
