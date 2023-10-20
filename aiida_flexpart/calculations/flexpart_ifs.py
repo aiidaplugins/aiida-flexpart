@@ -164,12 +164,17 @@ class FlexpartIfsCalculation(CalcJob):
             'SPECIES'
             ))
         
-        #_DEFAULT_PARENT_CALC_FLDR_NAME = "parent_calc/"
         if "parent_calc_folder" in self.inputs:
+            computer_uuid = self.inputs.parent_calc_folder.computer.uuid
+            remote_path = self.inputs.parent_calc_folder.get_remote_path()
             calcinfo.remote_symlink_list.append((
-                         self.inputs.parent_calc_folder.computer.uuid,
-                         self.inputs.parent_calc_folder.get_remote_path(), 
-                         self._DEFAULT_PARENT_CALC_FLDR_NAME))
+                         computer_uuid,
+                         remote_path+'/header', 
+                         'header_previous'))
+            calcinfo.remote_symlink_list.append((
+                         computer_uuid,
+                         remote_path+'/partposit_inst', 
+                         'partposit_previous'))
 
         
         # Dealing with land_use input namespace.

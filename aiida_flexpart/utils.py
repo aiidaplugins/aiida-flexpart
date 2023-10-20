@@ -176,7 +176,13 @@ def convert_input_to_namelist_entry(key, val, mapping=None):
 
 def fill_in_template_file(folder, fname, data):
     """Create an input file based on the standard templates."""
-    with folder.open(fname, 'w') as infile:
+
+    if 'ifs' in fname:
+        fname_=fname[:-4]
+    else:
+        fname_=fname
+
+    with folder.open(fname_, 'w') as infile:
         template = jinja2.Template(
             importlib.resources.read_text('aiida_flexpart.templates',
                                           fname + '.j2'))

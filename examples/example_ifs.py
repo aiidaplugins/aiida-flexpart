@@ -59,6 +59,11 @@ def test_run(flexpart_code):
     meteo_path = orm.RemoteData(
         remote_path=f'/scratch/snx3000/{user_name}/FLEXPART_input/IFS_GL_05',
         computer=flexpart_code.computer)
+    
+    #change path accordingly
+    previous_cosmo_calc = orm.RemoteData(
+        remote_path=f'/scratch/snx3000/{user_name}/aiida/9e/2c/5188-d166-4b20-a89f-b2559a83a6b1',
+        computer=flexpart_code.computer)
 
     # Set up calculation.
     calc = CalculationFactory('flexpart.ifs')
@@ -81,6 +86,9 @@ def test_run(flexpart_code):
         'surfdata': surfdata,
         'surfdepo': surfdepo,
     }
+
+    #uncomment to use previous cosmo calculation
+    #builder.parent_calc_folder = previous_cosmo_calc
 
     builder.metadata.description = 'Test job submission with the aiida_flexpart plugin'
     builder.metadata.options.stash = {
