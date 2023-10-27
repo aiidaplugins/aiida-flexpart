@@ -55,7 +55,7 @@ def simulation_dates_parser(date_list: list) -> list:
 def test_run(flexpart_code):
     """Run workflow."""
 
-    simulation_dates = simulation_dates_parser(['2021-01-02'])
+    simulation_dates = simulation_dates_parser(['2021-01-03'])
     username='lfernand'
     users_address=f'/users/{username}/resources/flexpart/'
     scratch_address=f'/scratch/snx3000/{username}/FLEXPART_input/'
@@ -80,6 +80,9 @@ def test_run(flexpart_code):
         computer = flexpart_code.computer)
     meteo_path_ifs = orm.RemoteData(
         remote_path = scratch_address+'IFS_GL_05',
+        computer=flexpart_code.computer)
+    parent_folder = orm.RemoteData(
+        remote_path = scratch_address+'/',
         computer=flexpart_code.computer)
 
     #builder starts
@@ -138,7 +141,7 @@ def test_run(flexpart_code):
         'surfdata': surfdata,
         'surfdepo': surfdepo,
     }
-
+    #builder.parent_calc_folder = parent_folder
     builder.flexpart.metadata.options.stash = {
         'source_list': ['aiida.out', 'grid_time_*.nc'],
         'target_base': f'/store/empa/em05/{username}/aiida_stash',

@@ -96,6 +96,7 @@ def test_run(flexpart_code):
         'target_base': f'/store/empa/em05/{user_name}/aiida_stash',
         'stash_mode': StashMode.COPY.value,
     }
+    #builder.metadata.options.max_wallclock_seconds = 2000
 
     # builder.metadata.dry_run = True
     # builder.metadata.store_provenance = False

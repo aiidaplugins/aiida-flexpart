@@ -86,6 +86,9 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
         spec.expose_inputs(FlexpartCalculation,
                            include=['metadata.options'],
                            namespace='flexpart')
+        spec.expose_inputs(FlexpartIfsCalculation,
+                           include=['metadata.options'],
+                           namespace='flexpart')
 
         # Outputs
         #spec.output('output_file', valid_type=orm.SinglefileData)
@@ -121,6 +124,7 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
         self.ctx.index = 0
         self.ctx.simulation_dates = self.inputs.simulation_dates
         self.ctx.integration_time = self.inputs.integration_time
+        self.ctx.offline_integration_time = self.inputs.offline_integration_time
        
         #model settings
         self.ctx.release_settings = self.inputs.release_settings
@@ -150,7 +154,13 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
                         'edate': orm.Str(e_date),
                     })
 
-        return node.is_finished_ok
+        if node.is_finished_ok:
+             self.report('meteo files transferred successfully')
+             return True
+        else:
+             self.report('failed to transfer meteo files')
+             self.ctx.index += 1
+             return False
     
     def prepare_meteo_folder_cosmo(self):
         e_date, s_date = get_simulation_period(self.ctx.simulation_dates[self.ctx.index],
@@ -170,7 +180,13 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
                         'model': self.inputs.model
                     })
 
-        return node.is_finished_ok
+        if node.is_finished_ok:
+             self.report('meteo files transferred successfully')
+             return True
+        else:
+             self.report('failed to transfer meteo files')
+             self.ctx.index += 1
+             return False
 
     def run_cosmo_simulation(self):
             """Run calculations for equation of state."""
@@ -216,14 +232,14 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
             # Set up calculation.
             self.report(f'Running FIFS for {self.ctx.simulation_dates[self.ctx.index]}')
             builder = FlexpartIfsCalculation.get_builder()
-            builder.code = self.inputs.ifs_code
+            builder.code = self.inputs.fifs_code
 
             #changes in the command file
             new_dict = self.ctx.command.get_dict()
             new_dict['simulation_date'] = self.ctx.simulation_dates[self.ctx.index]
-            new_dict['dumped_particle_data'] = True
             if self.ctx.offline_integration_time>0:
                 new_dict['age_class'] = self.ctx.offline_integration_time * 3600
+                new_dict['dumped_particle_data'] = True
             else:
                 new_dict['age_class'] = self.inputs.integration_time * 3600
             new_dict.update(self.inputs.meteo_inputs)
@@ -239,12 +255,12 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
             builder.outgrid = self.ctx.outgrid
             builder.outgrid_nest = self.ctx.outgrid_nest
             builder.species = self.ctx.species
-            builder.land_use = self.ctx.land_use_ifs
+            builder.land_use = self.inputs.land_use_ifs
             builder.meteo_path = self.inputs.meteo_path_ifs
 
             #remote folder from cosmo calc
             if 'parent_calc_folder' in self.inputs:
-                builder.parent_calc_folder = self.ctx.parent_calc_folder
+                builder.parent_calc_folder = self.inputs.parent_calc_folder
 
             # Walltime, memory, and resources.
             builder.metadata.description = 'Test workflow to submit a flexpart calculation'
