@@ -88,7 +88,7 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
                            namespace='flexpart')
         spec.expose_inputs(FlexpartIfsCalculation,
                            include=['metadata.options'],
-                           namespace='flexpart')
+                           namespace='flexpartifs')
 
         # Outputs
         #spec.output('output_file', valid_type=orm.SinglefileData)
@@ -267,7 +267,7 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
 
             # Walltime, memory, and resources.
             builder.metadata.description = 'Test workflow to submit a flexpart calculation'
-            builder.metadata.options = self.inputs.flexpart.metadata.options
+            builder.metadata.options = self.inputs.flexpartifs.metadata.options
 
             # Ask the workflow to continue when the results are ready and store them in the context
             running = self.submit(builder)

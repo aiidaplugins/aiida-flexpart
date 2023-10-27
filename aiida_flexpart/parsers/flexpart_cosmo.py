@@ -49,8 +49,10 @@ class FlexpartCosmoParser(Parser):
 
         # check aiida.out content
         with self.retrieved.open(output_filename, 'r') as handle:
+            output_node = SinglefileData(file=handle)
             content=handle.read()
             if 'CONGRATULATIONS' not in content:
+                self.out('output_file', output_node)
                 return ExitCode(1)
         # add output file
         self.logger.info("Parsing '{}'".format(output_filename))
