@@ -139,8 +139,11 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
         self.ctx.land_use = self.inputs.land_use
 
     def prepare_meteo_folder_ifs(self):
+        age_class_ = self.inputs.integration_time.value * 3600
+        if self.ctx.offline_integration_time>0:
+                age_class_ = self.inputs.offline_integration_time.value * 3600
         e_date, s_date = get_simulation_period(self.ctx.simulation_dates[self.ctx.index],
-                                    self.inputs.integration_time.value * 3600,
+                                    age_class_,
                                     self.ctx.command.get_dict()["release_duration"],
                                     self.ctx.command.get_dict()["simulation_direction"])
         
