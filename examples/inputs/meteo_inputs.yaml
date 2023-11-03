@@ -6,3 +6,23 @@ cosmo1:
   sampling_rate_of_output: 10
   synchronisation_interval: 10
   convection_parametrization: 0
+kenda1:
+  sampling_rate_of_output: 10
+  synchronisation_interval: 10
+  convection_parametrization: 0
+IFS_GL_1:
+  sampling_rate_of_output: 600
+  synchronisation_interval: 600
+  convection_parametrization: 1
+IFS_GL_05:
+  sampling_rate_of_output: 300
+  synchronisation_interval: 300
+  convection_parametrization: 1
+IFS_EU_02:
+  sampling_rate_of_output: 180
+  synchronisation_interval: 180
+  convection_parametrization: 1
+IFS_EU_01:
+  sampling_rate_of_output: 120
+  synchronisation_interval: 120
+  convection_parametrization: 1
