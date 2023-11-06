@@ -8,6 +8,10 @@ import datetime
 FlexpartCalculation = plugins.CalculationFactory('flexpart.cosmo')
 FlexpartIfsCalculation = plugins.CalculationFactory('flexpart.ifs')
 
+#possible models
+cosmo_models = ['cosmo7', 'cosmo1', 'kenda1']
+ECMWF_models = ['IFS_GL_05', 'IFS_GL_1', 'IFS_EU_02', 'IFS_EU_01']
+
 def get_simulation_period(date,
                    age_class_time,
                    release_duration,
@@ -45,6 +49,7 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
         spec.input('simulation_dates', valid_type=orm.List,
                    help='A list of the starting dates of the simulations')
         spec.input('model', valid_type=orm.Str, required=True)
+        spec.input('model_offline', valid_type=orm.Str, required=True)
         spec.input('offline_integration_time', valid_type=orm.Int)
         spec.input('integration_time', valid_type=orm.Int, help='Integration time in hours')
         spec.input("parent_calc_folder",
@@ -52,9 +57,6 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
             required=False,
             help="Working directory of a previously ran calculation to restart from."
         )
-        
-        #outline variables
-        spec.input('run_cosmo',valid_type=orm.Bool, required=True)
         
         #model settings
         spec.input('input_phy', valid_type=orm.Dict)
@@ -66,10 +68,12 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
         #meteo related inputs
         spec.input('meteo_inputs', valid_type=orm.Dict,
                    help='Meteo models input params.')
+        spec.input('meteo_inputs_offline', valid_type=orm.Dict,required=False,
+                   help='Meteo models input params.')
         spec.input('meteo_path', valid_type=orm.RemoteData,
         required=True, help='Path to the folder containing the meteorological input data.')
-        spec.input('meteo_path_ifs', valid_type=orm.RemoteData,
-        required=True, help='Path to the folder containing the meteorological input data.')
+        spec.input('meteo_path_offline', valid_type=orm.RemoteData,
+        required=False, help='Path to the folder containing the meteorological input data.')
         spec.input('gribdir', valid_type=orm.Str, required=True)
 
         #others
@@ -101,7 +105,13 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
                 if_(cls.prepare_meteo_folder_cosmo)(
                 cls.run_cosmo_simulation
                 )
-            ).else_(
+            ),
+            if_(cls.run_ifs)(
+                if_(cls.prepare_meteo_folder_ifs)(
+                cls.run_ifs_simulation
+                )
+            ),
+            if_(cls.run_offline)(
                 if_(cls.prepare_meteo_folder_ifs)(
                 cls.run_ifs_simulation
                 )
@@ -114,7 +124,18 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
         return True if self.ctx.index < len(self.ctx.simulation_dates) else False
     
     def run_cosmo(self):
-         return True if self.inputs.run_cosmo else False
+         return True if self.inputs.model in cosmo_models else False
+    
+    def run_ifs(self):
+         return True if self.inputs.model in ECMWF_models else False
+    
+    def run_offline(self):
+         if self.inputs.model_offline in ECMWF_models and self.inputs.model is not None:
+              self.ctx.index-=1
+              return True
+         elif self.inputs.model_offline in ECMWF_models and self.inputs.model is None:
+              return True
+         return False
 
     def setup(self):
         """Prepare a simulation."""
@@ -227,7 +248,7 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
             # Ask the workflow to continue when the results are ready and store them in the context
             running = self.submit(builder)
             self.to_context(calculations=engine.append_(running))
-
+    
             self.ctx.index += 1
 
     def run_ifs_simulation(self):
@@ -236,17 +257,28 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
             self.report(f'Running FIFS for {self.ctx.simulation_dates[self.ctx.index]}')
             builder = FlexpartIfsCalculation.get_builder()
             builder.code = self.inputs.fifs_code
-
+       
             #changes in the command file
             new_dict = self.ctx.command.get_dict()
             new_dict['simulation_date'] = self.ctx.simulation_dates[self.ctx.index]
-            if self.ctx.offline_integration_time>0:
+
+            if self.inputs.model_offline in ECMWF_models:
                 new_dict['age_class'] = self.ctx.offline_integration_time * 3600
                 new_dict['dumped_particle_data'] = True
+
+                if self.inputs.model is not None:
+                    self.ctx.parent_calc_folder = self.ctx.calculations[-1].outputs.remote_folder
+                    self.report(f'starting from: {self.ctx.parent_calc_folder}')
+                else:
+                    self.ctx.parent_calc_folder = self.inputs.parent_calc_folder
+
+                builder.meteo_path = self.inputs.meteo_path_offline
+                builder.parent_calc_folder = self.ctx.parent_calc_folder
+                new_dict.update(self.inputs.meteo_inputs_offline)
             else:
                 new_dict['age_class'] = self.inputs.integration_time * 3600
-            new_dict.update(self.inputs.meteo_inputs)
-            new_dict['convection_parametrization'] = 1
+                builder.meteo_path = self.inputs.meteo_path
+                new_dict.update(self.inputs.meteo_inputs)
 
             #model settings
             builder.model_settings = {
@@ -254,17 +286,12 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
                 'locations': self.ctx.locations,
                 'command': orm.Dict(dict=new_dict),
             }
-            
+    
             builder.outgrid = self.ctx.outgrid
             builder.outgrid_nest = self.ctx.outgrid_nest
             builder.species = self.ctx.species
             builder.land_use = self.inputs.land_use_ifs
-            builder.meteo_path = self.inputs.meteo_path_ifs
-
-            #remote folder from cosmo calc
-            if 'parent_calc_folder' in self.inputs:
-                builder.parent_calc_folder = self.inputs.parent_calc_folder
-
+   
             # Walltime, memory, and resources.
             builder.metadata.description = 'Test workflow to submit a flexpart calculation'
             builder.metadata.options = self.inputs.flexpartifs.metadata.options
