@@ -55,8 +55,8 @@ def simulation_dates_parser(date_list: list) -> list:
 def test_run(flexpart_code):
     """Run workflow."""
 
-    simulation_dates = simulation_dates_parser(['2021-01-07, 2021-01-08'])
-    model = 'cosmo7'
+    simulation_dates = simulation_dates_parser(['2021-01-07,2021-01-08'])
+    model = None
     model_offline = 'IFS_GL_05'
     username='lfernand'
     users_address=f'/users/{username}/resources/flexpart/'
@@ -98,15 +98,16 @@ def test_run(flexpart_code):
     #meteo realted settings
     builder.model = orm.Str(model)
     builder.model_offline = orm.Str(model_offline)
-    
-    meteo_path = orm.RemoteData(
-            remote_path=scratch_address+model+'/',
-            computer = flexpart_code.computer)
-    builder.meteo_path = meteo_path
-    builder.meteo_inputs = orm.Dict(
-        dict=read_yaml_data('inputs/meteo_inputs.yaml', names=[
-            model,
-        ])[model])
+
+    if model is not None:
+        meteo_path = orm.RemoteData(
+                remote_path=scratch_address+model+'/',
+                computer = flexpart_code.computer)
+        builder.meteo_path = meteo_path
+        builder.meteo_inputs = orm.Dict(
+            dict=read_yaml_data('inputs/meteo_inputs.yaml', names=[
+                model,
+            ])[model])
 
     if model_offline is not None:
         meteo_path_offline = orm.RemoteData(

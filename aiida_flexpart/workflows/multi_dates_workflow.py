@@ -66,12 +66,12 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
                    help='Dictionary of locations properties.')
         
         #meteo related inputs
-        spec.input('meteo_inputs', valid_type=orm.Dict,
+        spec.input('meteo_inputs', valid_type=orm.Dict,required=False,
                    help='Meteo models input params.')
         spec.input('meteo_inputs_offline', valid_type=orm.Dict,required=False,
                    help='Meteo models input params.')
         spec.input('meteo_path', valid_type=orm.RemoteData,
-        required=True, help='Path to the folder containing the meteorological input data.')
+        required=False, help='Path to the folder containing the meteorological input data.')
         spec.input('meteo_path_offline', valid_type=orm.RemoteData,
         required=False, help='Path to the folder containing the meteorological input data.')
         spec.input('gribdir', valid_type=orm.Str, required=True)
@@ -130,10 +130,10 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
          return True if self.inputs.model in ECMWF_models else False
     
     def run_offline(self):
-         if self.inputs.model_offline in ECMWF_models and self.inputs.model is not None:
+         if self.inputs.model_offline in ECMWF_models and self.inputs.model != '':
               self.ctx.index-=1
               return True
-         elif self.inputs.model_offline in ECMWF_models and self.inputs.model is None:
+         elif self.inputs.model_offline in ECMWF_models and self.inputs.model == '':
               return True
          return False
 
@@ -141,6 +141,7 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
         """Prepare a simulation."""
 
         self.report(f'starting setup')
+        self.report(f'model: {self.inputs.model.value}, model_offline: {self.inputs.model_offline.value}')
 
         self.ctx.index = 0
         self.ctx.simulation_dates = self.inputs.simulation_dates
@@ -261,12 +262,12 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
             #changes in the command file
             new_dict = self.ctx.command.get_dict()
             new_dict['simulation_date'] = self.ctx.simulation_dates[self.ctx.index]
-
+            
             if self.inputs.model_offline in ECMWF_models:
                 new_dict['age_class'] = self.ctx.offline_integration_time * 3600
                 new_dict['dumped_particle_data'] = True
 
-                if self.inputs.model is not None:
+                if self.inputs.model != '':
                     self.ctx.parent_calc_folder = self.ctx.calculations[-1].outputs.remote_folder
                     self.report(f'starting from: {self.ctx.parent_calc_folder}')
                 else:
