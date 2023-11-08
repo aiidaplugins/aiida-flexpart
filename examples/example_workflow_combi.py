@@ -55,10 +55,15 @@ def simulation_dates_parser(date_list: list) -> list:
 def test_run(flexpart_code):
     """Run workflow."""
 
-    simulation_dates = simulation_dates_parser(['2021-01-07,2021-01-08'])
-    model = None
+    simulation_dates = simulation_dates_parser(['2021-07-01'])
+    model = 'kenda1'
     model_offline = 'IFS_GL_05'
-    username='lfernand'
+    username='shenne'
+    outgrid_main = 'Europe'
+    outgrid_nest = 'Switzerland'
+    integration_time = 24
+    integration_time_offline = 48
+
     users_address=f'/users/{username}/resources/flexpart/'
     scratch_address=f'/scratch/snx3000/{username}/FLEXPART_input/'
 
@@ -77,23 +82,25 @@ def test_run(flexpart_code):
     surfdepo = orm.RemoteData(
         remote_path = users_address+'surfdepo.t',
         computer=flexpart_code.computer)
-    #parent_folder = orm.load_node(pk previous tsk)
-    parent_folder = orm.RemoteData(
-        remote_path = '/scratch/snx3000/lfernand/aiida/76/8d/cb2c-2fc6-46c4-b609-1d33fce0f60c',
-        computer=flexpart_code.computer)
+    
+    # parent_folder = orm.load_node(pk previous tsk)
+    # parent_folder = orm.RemoteData(
+    #     remote_path = '/scratch/snx3000/lfernand/aiida/76/8d/cb2c-2fc6-46c4-b609-1d33fce0f60c',
+    #     computer=flexpart_code.computer)
+    parent_folder = None
 
     #builder starts
     workflow = plugins.WorkflowFactory('flexpart.multi_dates')
     builder = workflow.get_builder()
     builder.fcosmo_code = flexpart_code
     builder.fifs_code = orm.load_code('flexpart_ifs@daint')
-    builder.check_meteo_ifs_code = orm.load_code('check-ifs-data@daint-direct-106')
-    builder.check_meteo_cosmo_code = orm.load_code('check-cosmo-data@daint-direct-106')
+    builder.check_meteo_ifs_code = orm.load_code('check-ifs-data@daint-direct')
+    builder.check_meteo_cosmo_code = orm.load_code('check-cosmo-data@daint-direct')
 
     #basic settings
     builder.simulation_dates = simulation_dates
-    builder.integration_time = orm.Int(24)
-    builder.offline_integration_time = orm.Int(48)
+    builder.integration_time = orm.Int(integration_time)
+    builder.offline_integration_time = orm.Int(integration_time_offline)
 
     #meteo realted settings
     builder.model = orm.Str(model)
@@ -121,7 +128,6 @@ def test_run(flexpart_code):
 
     builder.gribdir=orm.Str(scratch_address)
    
-    
     #model settings
     builder.command = orm.Dict(
         dict=read_yaml_data('inputs/command.yaml')) #simulation date will be overwritten
@@ -137,12 +143,12 @@ def test_run(flexpart_code):
     #other
     builder.outgrid = orm.Dict(
         dict=read_yaml_data('inputs/outgrid.yaml', names=[
-            'Europe',
-        ])['Europe'])
+            outgrid_main,
+        ])[outgrid_main])
     builder.outgrid_nest = orm.Dict(dict=read_yaml_data(
-        'inputs/outgrid_nest.yaml', names=[
-            'Europe',
-        ])['Europe']) 
+        'inputs/outgrid.yaml', names=[
+            outgrid_nest,
+        ])[outgrid_nest]) 
     builder.species = species
     builder.land_use = {
         'glc': glc,
@@ -156,7 +162,7 @@ def test_run(flexpart_code):
     }
     builder.parent_calc_folder = parent_folder
     builder.flexpart.metadata.options.stash = {
-        'source_list': ['aiida.out', 'grid_time_*.nc'],
+        'source_list': ['aiida.out', 'header*', 'grid_time_*.nc'],
         'target_base': f'/store/empa/em05/{username}/aiida_stash',
         'stash_mode': StashMode.COPY.value,
     }
