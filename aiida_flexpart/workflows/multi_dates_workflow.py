@@ -173,10 +173,12 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
 
         results, node = launch_shell_job(
                     self.inputs.check_meteo_ifs_code,                           
-                    arguments=' -s {sdate} -e {edate} -a',
+                    arguments=' -s {sdate} -e {edate} -g {gribdir} -m {model} -a',
                     nodes={
                         'sdate': orm.Str(s_date),
                         'edate': orm.Str(e_date),
+                        'gribdir': self.inputs.gribdir,
+                        'model' : self.inputs.model_offline
                     })
 
         if node.is_finished_ok:
