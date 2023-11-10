@@ -143,15 +143,15 @@ class FlexpartIfsCalculation(CalcJob):
          # Fill in the AGECLASSES file.
         fill_in_template_file(folder, 'AGECLASSES', int(age_class_time.total_seconds()))
 
-        # Fill in the COMMAND file.
-        fill_in_template_file(folder, 'COMMAND_ifs', command_dict)
-
         # Fill in the OUTGRID_NEST file if the corresponding dictionary is present.
         if 'outgrid_nest' in self.inputs:
             command_dict['nested_output'] = True
             fill_in_template_file(folder, 'OUTGRID_NEST_ifs', self.inputs.outgrid_nest.get_dict())
         else:
             command_dict['nested_output'] = False
+
+        # Fill in the COMMAND file.
+        fill_in_template_file(folder, 'COMMAND_ifs', command_dict)
 
         # Fill in the OUTGRID file.
         fill_in_template_file(folder, 'OUTGRID_ifs', self.inputs.outgrid.get_dict())
