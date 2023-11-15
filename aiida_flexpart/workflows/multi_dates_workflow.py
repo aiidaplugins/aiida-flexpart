@@ -48,8 +48,8 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
         # Basic Inputs
         spec.input('simulation_dates', valid_type=orm.List,
                    help='A list of the starting dates of the simulations')
-        spec.input('model', valid_type=orm.Str, required=True)
-        spec.input('model_offline', valid_type=orm.Str, required=True)
+        spec.input('model', valid_type=orm.List, required=True)
+        spec.input('model_offline', valid_type=orm.List, required=True)
         spec.input('offline_integration_time', valid_type=orm.Int)
         spec.input('integration_time', valid_type=orm.Int, help='Integration time in hours')
         spec.input("parent_calc_folder",
@@ -70,9 +70,9 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
                    help='Meteo models input params.')
         spec.input('meteo_inputs_offline', valid_type=orm.Dict,required=False,
                    help='Meteo models input params.')
-        spec.input('meteo_path', valid_type=orm.RemoteData,
+        spec.input('meteo_path', valid_type=orm.List,
         required=False, help='Path to the folder containing the meteorological input data.')
-        spec.input('meteo_path_offline', valid_type=orm.RemoteData,
+        spec.input('meteo_path_offline', valid_type=orm.List,
         required=False, help='Path to the folder containing the meteorological input data.')
         spec.input('gribdir', valid_type=orm.Str, required=True)
 
@@ -124,16 +124,22 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
         return True if self.ctx.index < len(self.ctx.simulation_dates) else False
     
     def run_cosmo(self):
-         return True if self.inputs.model in cosmo_models else False
+         if all(mod in cosmo_models for mod in self.inputs.model) and self.inputs.model:
+            return True
+         else:
+            return False
     
     def run_ifs(self):
-         return True if self.inputs.model in ECMWF_models else False
+         if all(mod in ECMWF_models for mod in self.inputs.model) and self.inputs.model:
+            return True
+         else:
+            return False
     
     def run_offline(self):
-         if self.inputs.model_offline in ECMWF_models and self.inputs.model != '':
+         if all(mod in ECMWF_models for mod in self.inputs.model_offline) and self.inputs.model and self.inputs.model_offline:
               self.ctx.index-=1
               return True
-         elif self.inputs.model_offline in ECMWF_models and self.inputs.model == '':
+         elif all(mod in ECMWF_models for mod in self.inputs.model_offline) and not self.inputs.model:
               return True
          return False
 
@@ -141,7 +147,6 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
         """Prepare a simulation."""
 
         self.report(f'starting setup')
-        self.report(f'model: {self.inputs.model.value}, model_offline: {self.inputs.model_offline.value}')
 
         self.ctx.index = 0
         self.ctx.simulation_dates = self.inputs.simulation_dates
@@ -169,23 +174,32 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
                                     self.ctx.command.get_dict()["release_duration"],
                                     self.ctx.command.get_dict()["simulation_direction"])
         
-        self.report(f'prepare meteo from {s_date} to {e_date}')
+        self.report(f'preparing meteo from {s_date} to {e_date}')
 
-        results, node = launch_shell_job(
-                    self.inputs.check_meteo_ifs_code,                           
-                    arguments=' -s {sdate} -e {edate} -g {gribdir} -m {model} -a',
-                    nodes={
-                        'sdate': orm.Str(s_date),
-                        'edate': orm.Str(e_date),
-                        'gribdir': self.inputs.gribdir,
-                        'model' : self.inputs.model_offline
-                    })
+        if all(mod in ECMWF_models for mod in self.inputs.model) and self.inputs.model:
+             model_list = self.inputs.model
+        else:
+             model_list = self.inputs.model_offline
 
-        if node.is_finished_ok:
-             self.report('meteo files transferred successfully')
+        node_list=[]
+        for mod in model_list:
+            self.report(f'transfering {mod} meteo')
+            results, node = launch_shell_job(
+                        self.inputs.check_meteo_ifs_code,                           
+                        arguments=' -s {sdate} -e {edate} -g {gribdir} -m {model} -a',
+                        nodes={
+                            'sdate': orm.Str(s_date),
+                            'edate': orm.Str(e_date),
+                            'gribdir': self.inputs.gribdir,
+                            'model' : orm.Str(mod)
+                        })
+            node_list.append(node)
+            
+        if all(node.is_finished_ok for node in node_list):
+             self.report('ALL meteo OK')
              return True
         else:
-             self.report('failed to transfer meteo files')
+             self.report('FAILED to transfer meteo')
              self.ctx.index += 1
              return False
     
@@ -195,30 +209,34 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
                                     self.ctx.command.get_dict()["release_duration"],
                                     self.ctx.command.get_dict()["simulation_direction"])
         
-        self.report(f'prepare meteo from {s_date} to {e_date}')
+        self.report(f'preparing meteo from {s_date} to {e_date}')
 
-        results, node = launch_shell_job(
-                    self.inputs.check_meteo_cosmo_code,                           
-                    arguments=' -s {sdate} -e {edate} -g {gribdir} -m {model} -a',
-                    nodes={
-                        'sdate': orm.Str(s_date),
-                        'edate': orm.Str(e_date),
-                        'gribdir': self.inputs.gribdir,
-                        'model': self.inputs.model
-                    })
+        node_list=[]
+        for mod in self.inputs.model:
+            self.report(f'transfering {mod} meteo')
+            results, node = launch_shell_job(
+                        self.inputs.check_meteo_cosmo_code,                           
+                        arguments=' -s {sdate} -e {edate} -g {gribdir} -m {model} -a',
+                        nodes={
+                            'sdate': orm.Str(s_date),
+                            'edate': orm.Str(e_date),
+                            'gribdir': self.inputs.gribdir,
+                            'model': orm.Str(mod)
+                        })
+            node_list.append(node)
 
-        if node.is_finished_ok:
-             self.report('meteo files transferred successfully')
+        if all(node.is_finished_ok for node in node_list):
+             self.report('ALL meteo OK')
              return True
         else:
-             self.report('failed to transfer meteo files')
+             self.report('FAILED to transfer meteo')
              self.ctx.index += 1
              return False
 
     def run_cosmo_simulation(self):
             """Run calculations for equation of state."""
      
-            self.report('starting flexpart cosmo')
+            self.report(f'starting flexpart cosmo {self.ctx.simulation_dates[self.ctx.index]}')
 
             builder = FlexpartCalculation.get_builder()
             builder.code = self.inputs.fcosmo_code
@@ -257,7 +275,7 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
     def run_ifs_simulation(self):
             """Run calculations for equation of state."""
             # Set up calculation.
-            self.report(f'Running FIFS for {self.ctx.simulation_dates[self.ctx.index]}')
+            self.report(f'running flexpart ifs for {self.ctx.simulation_dates[self.ctx.index]}')
             builder = FlexpartIfsCalculation.get_builder()
             builder.code = self.inputs.fifs_code
        
@@ -265,11 +283,11 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
             new_dict = self.ctx.command.get_dict()
             new_dict['simulation_date'] = self.ctx.simulation_dates[self.ctx.index]
             
-            if self.inputs.model_offline in ECMWF_models:
+            if self.inputs.model_offline[0] in ECMWF_models:
                 new_dict['age_class'] = self.ctx.offline_integration_time * 3600
                 new_dict['dumped_particle_data'] = True
 
-                if self.inputs.model != '':
+                if self.inputs.model:
                     self.ctx.parent_calc_folder = self.ctx.calculations[-1].outputs.remote_folder
                     self.report(f'starting from: {self.ctx.parent_calc_folder}')
                 else:

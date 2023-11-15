@@ -51,7 +51,7 @@ class FlexpartCosmoCalculation(CalcJob):
             help='Input file for the Lagrangian particle dispersion model FLEXPART. Nested output grid.'
             )
         spec.input('species', valid_type=orm.RemoteData, required=True)
-        spec.input('meteo_path', valid_type=orm.RemoteData,
+        spec.input('meteo_path', valid_type=orm.List,
         required=True, help='Path to the folder containing the meteorological input data.')
         spec.input('metadata.options.output_filename', valid_type=str, default='aiida.out', required=True)
         spec.input_namespace('land_use', valid_type=orm.RemoteData, required=False, dynamic=True, help='#TODO')
@@ -101,16 +101,13 @@ class FlexpartCosmoCalculation(CalcJob):
             needed by the calculation.
         :return: `aiida.common.datastructures.CalcInfo` instance
         """
+        meteo_string_list = ['./','./']
+        for path in self.inputs.meteo_path:
+            meteo_string_list.append(f'{path}{os.sep}')
+            meteo_string_list.append(f'{path}/AVAILABLE')
 
-        meteo_path = pathlib.Path(self.inputs.meteo_path.get_remote_path())
         codeinfo = datastructures.CodeInfo()
-        codeinfo.cmdline_params = [
-            './', # Folder containing the inputs.
-            './', # Folder containing the outputs.
-            f'{meteo_path}{os.sep}',
-            str(meteo_path / 'AVAILABLE'),
-            # File that lists all the individual input files that are available and assigns them a date
-        ]
+        codeinfo.cmdline_params = meteo_string_list
         codeinfo.code_uuid = self.inputs.code.uuid
         codeinfo.stdout_name = self.metadata.options.output_filename
         codeinfo.withmpi = self.inputs.metadata.options.withmpi

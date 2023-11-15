@@ -62,20 +62,20 @@ def simulation_dates_parser(date_list: list) -> list:
 def test_run(flexpart_code):
     """Run workflow."""
 
-    simulation_dates = simulation_dates_parser(['2021-01-09'])
-    model = 'cosmo7'
-    model_offline = 'IFS_GL_05'
+    simulation_dates = simulation_dates_parser(['2020-09-01'])
+    model = ['cosmo7']
+    model_offline = []
     username='lfernand'
     outgrid_main = 'Europe'
     outgrid_nest = 'Switzerland'
     integration_time = 24
-    integration_time_offline = 48
+    integration_time_offline = 24
 
     users_address=f'/users/{username}/resources/flexpart/'
     scratch_address=f'/scratch/snx3000/{username}/FLEXPART_input/'
 
     #list of locations and/or groups of locations
-    list_locations = ['TEST_32']
+    list_locations = ['group-name-1']
 
 
     # Links to the remote files/folders.
@@ -104,8 +104,8 @@ def test_run(flexpart_code):
     builder = workflow.get_builder()
     builder.fcosmo_code = flexpart_code
     builder.fifs_code = orm.load_code('flexpart_ifs@daint')
-    builder.check_meteo_ifs_code = orm.load_code('check-ifs-data@daint-direct')
-    builder.check_meteo_cosmo_code = orm.load_code('check-cosmo-data@daint-direct')
+    builder.check_meteo_ifs_code = orm.load_code('check-ifs-data@daint-direct-106')
+    builder.check_meteo_cosmo_code = orm.load_code('check-cosmo-data@daint-direct-106')
 
     #basic settings
     builder.simulation_dates = simulation_dates
@@ -113,28 +113,24 @@ def test_run(flexpart_code):
     builder.offline_integration_time = orm.Int(integration_time_offline)
 
     #meteo realted settings
-    builder.model = orm.Str(model)
-    builder.model_offline = orm.Str(model_offline)
+    builder.model = orm.List(model)
+    builder.model_offline = orm.List(model_offline)
 
-    if model is not None:
-        meteo_path = orm.RemoteData(
-                remote_path=scratch_address+model+'/',
-                computer = flexpart_code.computer)
+    if model:
+        meteo_path = orm.List([scratch_address+mod for mod in model])
         builder.meteo_path = meteo_path
         builder.meteo_inputs = orm.Dict(
             dict=read_yaml_data('inputs/meteo_inputs.yaml', names=[
-                model,
-            ])[model])
+                model[-1],
+            ])[model[-1]])
 
-    if model_offline is not None:
-        meteo_path_offline = orm.RemoteData(
-            remote_path = scratch_address+model_offline,
-            computer=flexpart_code.computer)
+    if model_offline:
+        meteo_path_offline = orm.List([scratch_address+mod for mod in model_offline])
         builder.meteo_path_offline = meteo_path_offline
         builder.meteo_inputs_offline = orm.Dict(
         dict=read_yaml_data('inputs/meteo_inputs.yaml', names=[
-            model_offline,
-        ])[model_offline])
+            model_offline[-1],
+        ])[model_offline[-1]])
 
     builder.gribdir=orm.Str(scratch_address)
    
@@ -182,6 +178,11 @@ def test_run(flexpart_code):
         'target_base': f'/store/empa/em05/{username}/aiida_stash',
         'stash_mode': StashMode.COPY.value,
     }
+
+    #change wall time for cosom and ifs in seconds
+    builder.flexpart.metadata.options.max_wallclock_seconds = 1800
+    #builder.flexpartifs.metadata.options.max_wallclock_seconds = 2700
+
     engine.run(builder)
 
 

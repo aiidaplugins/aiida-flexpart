@@ -1,2 +1,5 @@
-group-name1:
-  - location1
+group-name-1:
+  - TEST_32
+group-name-2:
+  - TEST_32
+  - TEST_200
