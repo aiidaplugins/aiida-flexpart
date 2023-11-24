@@ -7,6 +7,7 @@ import datetime
 
 FlexpartCalculation = plugins.CalculationFactory('flexpart.cosmo')
 FlexpartIfsCalculation = plugins.CalculationFactory('flexpart.ifs')
+FlexpartPostCalculation = plugins.CalculationFactory('flexpart.post')
 
 #possible models
 cosmo_models = ['cosmo7', 'cosmo1', 'kenda1']
@@ -44,6 +45,7 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
         spec.input('check_meteo_cosmo_code', valid_type=orm.AbstractCode)
         spec.input('fifs_code', valid_type=orm.AbstractCode)
         spec.input('check_meteo_ifs_code', valid_type=orm.AbstractCode)
+        spec.input('post_processing_code', valid_type=orm.AbstractCode)
 
         # Basic Inputs
         spec.input('simulation_dates', valid_type=orm.List,
@@ -93,6 +95,9 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
         spec.expose_inputs(FlexpartIfsCalculation,
                            include=['metadata.options'],
                            namespace='flexpartifs')
+        spec.expose_inputs(FlexpartPostCalculation,
+                           include=['metadata.options'],
+                           namespace='flexpartpost')
 
         # Outputs
         #spec.output('output_file', valid_type=orm.SinglefileData)
@@ -115,7 +120,8 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
                 if_(cls.prepare_meteo_folder_ifs)(
                 cls.run_ifs_simulation
                 )
-            )
+            ),
+            cls.post_processing,
             ),
             cls.results,
         )
@@ -232,6 +238,24 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
              self.report('FAILED to transfer meteo')
              self.ctx.index += 1
              return False
+        
+    def post_processing(self):
+
+        self.report('starting post-processsing')
+        builder = FlexpartPostCalculation.get_builder()
+        builder.code = self.inputs.post_processing_code
+        builder.input_dir = self.ctx.calculations[-1].outputs.remote_folder
+
+        if self.ctx.offline_integration_time>0:
+             self.report(f'main: {self.ctx.calculations[-2].outputs.remote_folder}')
+             self.report(f'offline: {self.ctx.calculations[-1].outputs.remote_folder}')
+             builder.input_dir = self.ctx.calculations[-2].outputs.remote_folder
+             builder.input_offline_dir = self.ctx.calculations[-1].outputs.remote_folder
+
+        builder.metadata.options = self.inputs.flexpartpost.metadata.options
+        
+        running = self.submit(builder)
+        self.to_context(calculations=engine.append_(running))
 
     def run_cosmo_simulation(self):
             """Run calculations for equation of state."""

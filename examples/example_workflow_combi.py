@@ -64,7 +64,7 @@ def test_run(flexpart_code):
 
     simulation_dates = simulation_dates_parser(['2020-09-01'])
     model = ['cosmo7']
-    model_offline = []
+    model_offline = ['IFS_GL_05']
     username='lfernand'
     outgrid_main = 'Europe'
     outgrid_nest = 'Switzerland'
@@ -106,6 +106,7 @@ def test_run(flexpart_code):
     builder.fifs_code = orm.load_code('flexpart_ifs@daint')
     builder.check_meteo_ifs_code = orm.load_code('check-ifs-data@daint-direct-106')
     builder.check_meteo_cosmo_code = orm.load_code('check-cosmo-data@daint-direct-106')
+    builder.post_processing_code = orm.load_code('post-processing@daint')
 
     #basic settings
     builder.simulation_dates = simulation_dates
@@ -175,6 +176,11 @@ def test_run(flexpart_code):
     }
     builder.flexpartifs.metadata.options.stash = {
         'source_list': ['aiida.out','header*','partposit_inst', 'grid_time_*.nc'],
+        'target_base': f'/store/empa/em05/{username}/aiida_stash',
+        'stash_mode': StashMode.COPY.value,
+    }
+    builder.flexpartpost.metadata.options.stash = {
+        'source_list': ['aiida.out','boundary_sensitivity_*.nc', 'grid_time_*.nc'],
         'target_base': f'/store/empa/em05/{username}/aiida_stash',
         'stash_mode': StashMode.COPY.value,
     }
