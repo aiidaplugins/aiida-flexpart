@@ -6,6 +6,7 @@ TEST_32:
   lower_z_level: 00032.000
   upper_z_level: 00032.000
   level_type: 1 # 1 for m above ground, 2 for m above sea level
+  
 TEST_200:
   longitude_of_lower_left_corner: 0007.2480
   latitude_of_lower_left_corner: 0047.0536
@@ -14,3 +15,13 @@ TEST_200:
   lower_z_level: 00200.000
   upper_z_level: 00200.000
   level_type: 1 # 1 for m above ground, 2 for m above sea level
+
+TEST_210:
+  longitude: 7.2480
+  latitude: 47.0536
+  level: 
+    cosmo7: 200.000
+    cosmo1: 100.000
+    default: 150.000    
+  level_type: 1 
+

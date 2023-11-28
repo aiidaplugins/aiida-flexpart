@@ -187,3 +187,23 @@ def fill_in_template_file(folder, fname, data):
             importlib.resources.read_text('aiida_flexpart.templates',
                                           fname + '.j2'))
         infile.write(template.render(data=data))
+
+def reformat_locations(dict_, model):
+    for key in dict_.keys():
+        if 'longitude' in dict_[key]:
+            dict_[key]['longitude_of_lower_left_corner'] = dict_[key]['longitude']
+            dict_[key]['longitude_of_upper_right_corner'] = dict_[key]['longitude']
+            dict_[key]['latitude_of_lower_left_corner'] = dict_[key]['latitude']
+            dict_[key]['latitude_of_upper_right_corner'] = dict_[key]['latitude']
+
+            if model in dict_[key]['level']:
+                dict_[key]['lower_z_level'] = dict_[key]['level'][model]
+                dict_[key]['upper_z_level'] = dict_[key]['level'][model]
+            else:
+                dict_[key]['lower_z_level'] = dict_[key]['level']['default']
+                dict_[key]['upper_z_level'] = dict_[key]['level']['default']
+
+            dict_[key].pop('longitude')
+            dict_[key].pop('latitude')
+            dict_[key].pop('level')
+    return dict_

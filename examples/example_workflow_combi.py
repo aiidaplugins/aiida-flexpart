@@ -8,6 +8,7 @@ import click
 import yaml
 from aiida import orm, plugins, engine, cmdline
 from aiida.common.datastructures import StashMode
+from aiida_flexpart.utils import reformat_locations
 
 
 def read_yaml_data(data_filename: str, names=None) -> dict:
@@ -62,20 +63,20 @@ def simulation_dates_parser(date_list: list) -> list:
 def test_run(flexpart_code):
     """Run workflow."""
 
-    simulation_dates = simulation_dates_parser(['2020-09-01'])
+    simulation_dates = simulation_dates_parser(['2020-10-01'])
     model = ['cosmo7']
-    model_offline = ['IFS_GL_05']
+    model_offline = []
     username='lfernand'
     outgrid_main = 'Europe'
     outgrid_nest = 'Switzerland'
     integration_time = 24
-    integration_time_offline = 24
+    integration_time_offline = 0
 
     users_address=f'/users/{username}/resources/flexpart/'
     scratch_address=f'/scratch/snx3000/{username}/FLEXPART_input/'
 
     #list of locations and/or groups of locations
-    list_locations = ['group-name-1']
+    list_locations = ['group-name-2']
 
 
     # Links to the remote files/folders.
@@ -141,9 +142,11 @@ def test_run(flexpart_code):
     builder.input_phy = orm.Dict(
         dict=read_yaml_data('inputs/input_phy.yaml'))
     
-    builder.locations = orm.Dict(
-        dict=read_yaml_data('inputs/locations.yaml', 
-                            names = make_locations_list(list_locations)))
+    dict_=read_yaml_data('inputs/locations.yaml', 
+                        names = make_locations_list(list_locations))
+    reformated_dict_locations = reformat_locations(dict_, model[0])
+    builder.locations = orm.Dict(dict=reformated_dict_locations)
+
     builder.release_settings = orm.Dict(
         dict=read_yaml_data('inputs/release.yaml'))
 
@@ -175,7 +178,7 @@ def test_run(flexpart_code):
         'stash_mode': StashMode.COPY.value,
     }
     builder.flexpartifs.metadata.options.stash = {
-        'source_list': ['aiida.out','header*','partposit_inst', 'grid_time_*.nc'],
+        'source_list': ['aiida.out','header*','partposit_inst*', 'grid_time_*.nc'],
         'target_base': f'/store/empa/em05/{username}/aiida_stash',
         'stash_mode': StashMode.COPY.value,
     }
@@ -185,7 +188,7 @@ def test_run(flexpart_code):
         'stash_mode': StashMode.COPY.value,
     }
 
-    #change wall time for cosom and ifs in seconds
+    #change wall time for cosmo and ifs in seconds
     builder.flexpart.metadata.options.max_wallclock_seconds = 1800
     #builder.flexpartifs.metadata.options.max_wallclock_seconds = 2700
 
