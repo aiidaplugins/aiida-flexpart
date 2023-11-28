@@ -144,7 +144,7 @@ def test_run(flexpart_code):
     
     dict_=read_yaml_data('inputs/locations.yaml', 
                         names = make_locations_list(list_locations))
-    reformated_dict_locations = reformat_locations(dict_, model[0])
+    reformated_dict_locations = reformat_locations(dict_, model[-1])
     builder.locations = orm.Dict(dict=reformated_dict_locations)
 
     builder.release_settings = orm.Dict(
