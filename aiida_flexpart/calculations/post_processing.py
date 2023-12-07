@@ -24,7 +24,6 @@ class PostProcessingCalculation(CalcJob):
             'num_machines': 1,
             'num_mpiprocs_per_machine': 1,
         }
-        spec.input('metadata.options.max_wallclock_seconds', valid_type = int, default=1800)
 
         #INPUTS
         spec.input("input_dir", valid_type = orm.RemoteData, required=True,

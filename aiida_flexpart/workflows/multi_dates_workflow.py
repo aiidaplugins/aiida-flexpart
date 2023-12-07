@@ -3,34 +3,16 @@
 from aiida import engine, plugins, orm
 from aiida_shell import launch_shell_job
 from aiida.engine import calcfunction, while_, if_
-import datetime
+from aiida_flexpart.utils import get_simulation_period
 
-FlexpartCalculation = plugins.CalculationFactory('flexpart.cosmo')
+#plugins
+FlexpartCosmoCalculation = plugins.CalculationFactory('flexpart.cosmo')
 FlexpartIfsCalculation = plugins.CalculationFactory('flexpart.ifs')
 FlexpartPostCalculation = plugins.CalculationFactory('flexpart.post')
 
 #possible models
 cosmo_models = ['cosmo7', 'cosmo1', 'kenda1']
 ECMWF_models = ['IFS_GL_05', 'IFS_GL_1', 'IFS_EU_02', 'IFS_EU_01']
-
-def get_simulation_period(date,
-                   age_class_time,
-                   release_duration,
-                   simulation_direction
-                   ):
-        """Dealing with simulation times."""
-        #initial values
-        simulation_beginning_date = datetime.datetime.strptime(date,'%Y-%m-%d %H:%M:%S')
-        age_class_time = datetime.timedelta(seconds=age_class_time)
-        release_duration = datetime.timedelta(seconds=release_duration+3600)
-
-        if simulation_direction>0: #forward
-            simulation_ending_date=simulation_beginning_date+release_duration+age_class_time
-        else: #backward
-           simulation_ending_date=release_duration+simulation_beginning_date
-           simulation_beginning_date-=age_class_time
-        
-        return datetime.datetime.strftime(simulation_ending_date,'%Y%m%d%H'), datetime.datetime.strftime(simulation_beginning_date,'%Y%m%d%H')
 
 
 class FlexpartMultipleDatesWorkflow(engine.WorkChain):
@@ -89,9 +71,9 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
                              help='#TODO')
         spec.input_namespace('land_use_ifs', valid_type=orm.RemoteData, required=False, dynamic=True)
 
-        spec.expose_inputs(FlexpartCalculation,
+        spec.expose_inputs(FlexpartCosmoCalculation,
                            include=['metadata.options'],
-                           namespace='flexpart')
+                           namespace='flexpartcosmo')
         spec.expose_inputs(FlexpartIfsCalculation,
                            include=['metadata.options'],
                            namespace='flexpartifs')
@@ -116,11 +98,6 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
                 cls.run_ifs_simulation
                 )
             ),
-            if_(cls.run_offline)(
-                if_(cls.prepare_meteo_folder_ifs)(
-                cls.run_ifs_simulation
-                )
-            ),
             cls.post_processing,
             ),
             cls.results,
@@ -136,18 +113,14 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
             return False
     
     def run_ifs(self):
-         if all(mod in ECMWF_models for mod in self.inputs.model) and self.inputs.model:
+         if (all(mod in ECMWF_models for mod in self.inputs.model) or 
+             all(mod in ECMWF_models for mod in self.inputs.model_offline) and 
+             self.inputs.model and 
+             self.inputs.model_offline
+             ):
             return True
          else:
             return False
-    
-    def run_offline(self):
-         if all(mod in ECMWF_models for mod in self.inputs.model_offline) and self.inputs.model and self.inputs.model_offline:
-              self.ctx.index-=1
-              return True
-         elif all(mod in ECMWF_models for mod in self.inputs.model_offline) and not self.inputs.model:
-              return True
-         return False
 
     def setup(self):
         """Prepare a simulation."""
@@ -262,7 +235,7 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
      
             self.report(f'starting flexpart cosmo {self.ctx.simulation_dates[self.ctx.index]}')
 
-            builder = FlexpartCalculation.get_builder()
+            builder = FlexpartCosmoCalculation.get_builder()
             builder.code = self.inputs.fcosmo_code
 
             #update command file 
@@ -287,14 +260,14 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
 
             # Walltime, memory, and resources.
             builder.metadata.description = 'Test workflow to submit a flexpart calculation'
-            builder.metadata.options = self.inputs.flexpart.metadata.options
+            builder.metadata.options = self.inputs.flexpartcosmo.metadata.options
             
 
             # Ask the workflow to continue when the results are ready and store them in the context
             running = self.submit(builder)
             self.to_context(calculations=engine.append_(running))
-    
-            self.ctx.index += 1
+            if self.ctx.offline_integration_time == 0:
+                 self.ctx.index += 1
 
     def run_ifs_simulation(self):
             """Run calculations for equation of state."""
@@ -307,19 +280,17 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
             new_dict = self.ctx.command.get_dict()
             new_dict['simulation_date'] = self.ctx.simulation_dates[self.ctx.index]
             
-            if self.inputs.model_offline[0] in ECMWF_models:
+            if self.ctx.offline_integration_time > 0:
                 new_dict['age_class'] = self.ctx.offline_integration_time * 3600
                 new_dict['dumped_particle_data'] = True
 
-                if self.inputs.model:
-                    self.ctx.parent_calc_folder = self.ctx.calculations[-1].outputs.remote_folder
-                    self.report(f'starting from: {self.ctx.parent_calc_folder}')
-                else:
-                    self.ctx.parent_calc_folder = self.inputs.parent_calc_folder
+                self.ctx.parent_calc_folder = self.ctx.calculations[-1].outputs.remote_folder
+                builder.parent_calc_folder = self.ctx.parent_calc_folder
+                self.report(f'starting from: {self.ctx.parent_calc_folder}')
 
                 builder.meteo_path = self.inputs.meteo_path_offline
-                builder.parent_calc_folder = self.ctx.parent_calc_folder
                 new_dict.update(self.inputs.meteo_inputs_offline)
+                
             else:
                 new_dict['age_class'] = self.inputs.integration_time * 3600
                 builder.meteo_path = self.inputs.meteo_path

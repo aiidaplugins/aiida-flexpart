@@ -63,8 +63,8 @@ def simulation_dates_parser(date_list: list) -> list:
 def test_run(flexpart_code):
     """Run workflow."""
 
-    simulation_dates = simulation_dates_parser(['2020-10-01'])
-    model = ['cosmo7']
+    simulation_dates = simulation_dates_parser(['2020-10-01,2020-10-02'])
+    model = ['cosmo7', 'cosmo1']
     model_offline = []
     username='lfernand'
     outgrid_main = 'Europe'
@@ -118,10 +118,10 @@ def test_run(flexpart_code):
     builder.model = orm.List(model)
     builder.model_offline = orm.List(model_offline)
 
-    if model:
-        meteo_path = orm.List([scratch_address+mod for mod in model])
-        builder.meteo_path = meteo_path
-        builder.meteo_inputs = orm.Dict(
+
+    meteo_path = orm.List([scratch_address+mod for mod in model])
+    builder.meteo_path = meteo_path
+    builder.meteo_inputs = orm.Dict(
             dict=read_yaml_data('inputs/meteo_inputs.yaml', names=[
                 model[-1],
             ])[model[-1]])
@@ -172,7 +172,7 @@ def test_run(flexpart_code):
     }
     builder.parent_calc_folder = parent_folder
 
-    builder.flexpart.metadata.options.stash = {
+    builder.flexpartcosmo.metadata.options.stash = {
         'source_list': ['aiida.out','header*','partposit_inst', 'grid_time_*.nc'],
         'target_base': f'/store/empa/em05/{username}/aiida_stash',
         'stash_mode': StashMode.COPY.value,
@@ -189,7 +189,7 @@ def test_run(flexpart_code):
     }
 
     #change wall time for cosmo and ifs in seconds
-    builder.flexpart.metadata.options.max_wallclock_seconds = 1800
+    builder.flexpartcosmo.metadata.options.max_wallclock_seconds = 1800
     #builder.flexpartifs.metadata.options.max_wallclock_seconds = 2700
 
     engine.run(builder)
