@@ -14,7 +14,7 @@ from aiida import common, orm, engine
 from ..utils import fill_in_template_file
 
 
-class FlexpartIfsCalculation(CalcJob):
+class FlexpartIfsCalculation(engine.CalcJob):
     """AiiDA calculation plugin wrapping the FLEXPART IFS executable."""
     @classmethod
     def define(cls, spec):
@@ -99,14 +99,14 @@ class FlexpartIfsCalculation(CalcJob):
             meteo_string_list.append(f'{path}{os.sep}')
             meteo_string_list.append(f'{path}/AVAILABLE')
 
-        codeinfo = datastructures.CodeInfo()
+        codeinfo = common.CodeInfo()
         codeinfo.cmdline_params = meteo_string_list
         codeinfo.code_uuid = self.inputs.code.uuid
         codeinfo.stdout_name = self.metadata.options.output_filename
         codeinfo.withmpi = self.inputs.metadata.options.withmpi
 
         # Prepare a `CalcInfo` to be returned to the engine
-        calcinfo = datastructures.CalcInfo()
+        calcinfo = common.CalcInfo()
         calcinfo.codes_info = [codeinfo]
 
 

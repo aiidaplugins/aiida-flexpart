@@ -4,12 +4,12 @@ Parsers provided by aiida_flexpart.
 
 Register parsers via the "aiida.parsers" entry point in setup.json.
 """
-from aiida.engine, parsers, plugins, common, orm
+from aiida import parsers, plugins, common, orm, engine
 
-FlexpartCalculation = CalculationFactory('flexpart.ifs')
+FlexpartCalculation = plugins.CalculationFactory('flexpart.ifs')
 
 
-class FlexpartIfsParser(Parser):
+class FlexpartIfsParser(parsers.Parser):
     """
     Parser class for parsing output of calculation.
     """
@@ -24,7 +24,7 @@ class FlexpartIfsParser(Parser):
         """
         super().__init__(node)
         if not issubclass(node.process_class, FlexpartCalculation):
-            raise exceptions.ParsingError('Can only parse FlexpartCalculation')
+            raise common.ParsingError('Can only parse FlexpartCalculation')
 
     def parse(self, **kwargs):
         """
@@ -39,21 +39,22 @@ class FlexpartIfsParser(Parser):
         files_expected = [output_filename]
         # Note: set(A) <= set(B) checks whether A is a subset of B
         if not set(files_expected) <= set(files_retrieved):
-            self.logger.error("Found files '{}', expected to find '{}'".format(
-                files_retrieved, files_expected))
+            self.logger.error(
+                f"Found files '{files_retrieved}', expected to find '{files_expected}'"
+            )
             return self.exit_codes.ERROR_MISSING_OUTPUT_FILES
 
         # check aiida.out content
         with self.retrieved.open(output_filename, 'r') as handle:
             content = handle.read()
-            output_node = SinglefileData(file=handle)
+            output_node = orm.SinglefileData(file=handle)
             if 'CONGRATULATIONS' not in content:
                 self.out('output_file', output_node)
-                return ExitCode(1)
+                return engine.ExitCode(1)
         # add output file
-        self.logger.info("Parsing '{}'".format(output_filename))
+        self.logger.info(f"Parsing '{output_filename}'")
         with self.retrieved.open(output_filename, 'rb') as handle:
-            output_node = SinglefileData(file=handle)
+            output_node = orm.SinglefileData(file=handle)
         self.out('output_file', output_node)
 
-        return ExitCode(0)
+        return engine.ExitCode(0)

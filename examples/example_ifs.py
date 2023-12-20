@@ -60,7 +60,7 @@ def test_run(flexpart_code):
         computer=flexpart_code.computer)
 
     # Set up calculation.
-    calc = CalculationFactory('flexpart.ifs')
+    calc = plugins.CalculationFactory('flexpart.ifs')
     builder = calc.get_builder()
     builder.code = flexpart_code
     builder.model_settings = {
@@ -85,7 +85,7 @@ def test_run(flexpart_code):
     builder.metadata.options.stash = {
         'source_list': ['aiida.out', 'grid_time_*.nc'],
         'target_base': f'/store/empa/em05/{user_name}/aiida_stash',
-        'stash_mode': StashMode.COPY.value,
+        'stash_mode': common.StashMode.COPY.value,
     }
     #builder.metadata.options.max_wallclock_seconds = 2000
 
