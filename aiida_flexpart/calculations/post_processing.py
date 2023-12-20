@@ -26,6 +26,7 @@ class PostProcessingCalculation(CalcJob):
         }
 
         #INPUTS
+        spec.input('metadata.options.parser_name', valid_type=str, default='flexpart.post')
         spec.input("input_dir", valid_type = orm.RemoteData, required=True,
                    help = "main FLEXPART output dir")
         spec.input("input_offline_dir", valid_type = orm.RemoteData, required=False,

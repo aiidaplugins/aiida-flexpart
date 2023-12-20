@@ -63,8 +63,8 @@ def simulation_dates_parser(date_list: list) -> list:
 def test_run(flexpart_code):
     """Run workflow."""
 
-    simulation_dates = simulation_dates_parser(['2020-10-01,2020-10-02'])
-    model = ['cosmo7', 'cosmo1']
+    simulation_dates = simulation_dates_parser(['2020-10-01'])
+    model = ['cosmo7']
     model_offline = []
     username='lfernand'
     outgrid_main = 'Europe'
@@ -76,7 +76,7 @@ def test_run(flexpart_code):
     scratch_address=f'/scratch/snx3000/{username}/FLEXPART_input/'
 
     #list of locations and/or groups of locations
-    list_locations = ['group-name-2']
+    list_locations = ['KIT_200magl']
 
 
     # Links to the remote files/folders.
