@@ -51,7 +51,7 @@ class FlexpartCosmoCalculation(CalcJob):
             help='Input file for the Lagrangian particle dispersion model FLEXPART. Nested output grid.'
             )
         spec.input('species', valid_type=orm.RemoteData, required=True)
-        spec.input('meteo_path', valid_type=orm.RemoteData,
+        spec.input('meteo_path', valid_type=orm.List,
         required=True, help='Path to the folder containing the meteorological input data.')
         spec.input('metadata.options.output_filename', valid_type=str, default='aiida.out', required=True)
         spec.input_namespace('land_use', valid_type=orm.RemoteData, required=False, dynamic=True, help='#TODO')
@@ -62,13 +62,13 @@ class FlexpartCosmoCalculation(CalcJob):
     @classmethod
     def _deal_with_time(cls, command_dict):
         """Dealing with simulation times."""
-        
+
         #initial values
         simulation_beginning_date = datetime.datetime.strptime(command_dict.pop('simulation_date'),'%Y-%m-%d %H:%M:%S')
         age_class_time = datetime.timedelta(seconds=command_dict.pop('age_class'))
         release_chunk = datetime.timedelta(seconds=command_dict.pop('release_chunk'))
         release_duration = datetime.timedelta(seconds=command_dict.pop('release_duration'))
-        
+
         #releases start and end times
         release_beginning_date=simulation_beginning_date
         release_ending_date=release_beginning_date+release_duration
@@ -76,8 +76,8 @@ class FlexpartCosmoCalculation(CalcJob):
         if command_dict['simulation_direction']>0: #forward
             simulation_ending_date=release_ending_date+age_class_time
         else: #backward
-           simulation_ending_date=release_ending_date
-           simulation_beginning_date-=age_class_time
+            simulation_ending_date=release_ending_date
+            simulation_beginning_date-=age_class_time
 
         command_dict['simulation_beginning_date'] = [
             f'{simulation_beginning_date:%Y%m%d}',
@@ -101,16 +101,13 @@ class FlexpartCosmoCalculation(CalcJob):
             needed by the calculation.
         :return: `aiida.common.datastructures.CalcInfo` instance
         """
+        meteo_string_list = ['./','./']
+        for path in self.inputs.meteo_path:
+            meteo_string_list.append(f'{path}{os.sep}')
+            meteo_string_list.append(f'{path}/AVAILABLE')
 
-        meteo_path = pathlib.Path(self.inputs.meteo_path.get_remote_path())
         codeinfo = datastructures.CodeInfo()
-        codeinfo.cmdline_params = [
-            './', # Folder containing the inputs.
-            './', # Folder containing the outputs.
-            f'{meteo_path}{os.sep}',
-            str(meteo_path / 'AVAILABLE'),
-            # File that lists all the individual input files that are available and assigns them a date
-        ]
+        codeinfo.cmdline_params = meteo_string_list
         codeinfo.code_uuid = self.inputs.code.uuid
         codeinfo.stdout_name = self.metadata.options.output_filename
         codeinfo.withmpi = self.inputs.metadata.options.withmpi
