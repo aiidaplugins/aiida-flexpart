@@ -6,6 +6,7 @@ disable = [
     "too-many-ancestors",
     "invalid-name",
     "duplicate-code",
+    "too-many-locals",
 ]
 
 [tool.pytest.ini_options]
