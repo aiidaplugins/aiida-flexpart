@@ -6,10 +6,10 @@ Register parsers via the "aiida.parsers" entry point in setup.json.
 """
 from aiida import engine, parsers, plugins, common, orm
 
-FlexpartCalculation = CalculationFactory('flexpart.post')
+FlexpartCalculation = plugins.CalculationFactory('flexpart.post')
 
 
-class FlexpartPostParser(Parser):
+class FlexpartPostParser(parsers.Parser):
     """
     Parser class for parsing output of calculation.
     """
@@ -24,7 +24,7 @@ class FlexpartPostParser(Parser):
         """
         super().__init__(node)
         if not issubclass(node.process_class, FlexpartCalculation):
-            raise exceptions.ParsingError('Can only parse FlexpartCalculation')
+            raise common.ParsingError('Can only parse FlexpartCalculation')
 
     def parse(self, **kwargs):
         """
@@ -39,14 +39,15 @@ class FlexpartPostParser(Parser):
         files_expected = [output_filename]
         # Note: set(A) <= set(B) checks whether A is a subset of B
         if not set(files_expected) <= set(files_retrieved):
-            self.logger.error("Found files '{}', expected to find '{}'".format(
-                files_retrieved, files_expected))
+            self.logger.error(
+                f"Found files '{files_retrieved}', expected to find '{files_expected}'"
+            )
             return self.exit_codes.ERROR_MISSING_OUTPUT_FILES
 
         # add output file
-        self.logger.info("Parsing '{}'".format(output_filename))
+        self.logger.info(f"Parsing '{output_filename}'")
         with self.retrieved.open(output_filename, 'rb') as handle:
-            output_node = SinglefileData(file=handle)
+            output_node = orm.SinglefileData(file=handle)
         self.out('output_file', output_node)
 
-        return ExitCode(0)
+        return engine.ExitCode(0)

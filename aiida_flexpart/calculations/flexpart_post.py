@@ -6,7 +6,7 @@ Register calculations via the "aiida.calculations" entry point in setup.json.
 from aiida import orm, common, engine
 
 
-class PostProcessingCalculation(CalcJob):
+class PostProcessingCalculation(engine.CalcJob):
     """AiiDA calculation plugin for post processing."""
     @classmethod
     def define(cls, spec):
@@ -39,14 +39,14 @@ class PostProcessingCalculation(CalcJob):
         if 'input_offline_dir' in self.inputs:
             params += ['-n',self.inputs.input_offline_dir.get_remote_path()]
 
-        codeinfo = datastructures.CodeInfo()
+        codeinfo = common.CodeInfo()
         codeinfo.cmdline_params = params
         codeinfo.code_uuid = self.inputs.code.uuid
         codeinfo.stdout_name = self.metadata.options.output_filename
         codeinfo.withmpi = self.inputs.metadata.options.withmpi
 
         # Prepare a `CalcInfo` to be returned to the engine
-        calcinfo = datastructures.CalcInfo()
+        calcinfo = common.CalcInfo()
         calcinfo.codes_info = [codeinfo]
         calcinfo.retrieve_list = ['grid_time_*.nc', 'boundary_sensitivity_*.nc', 'aiida.out']
 
