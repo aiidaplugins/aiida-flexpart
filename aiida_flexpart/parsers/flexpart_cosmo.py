@@ -46,19 +46,14 @@ class FlexpartCosmoParser(Parser):
             self.logger.error("Found files '{}', expected to find '{}'".format(
                 files_retrieved, files_expected))
             return self.exit_codes.ERROR_MISSING_OUTPUT_FILES
-
-        # check aiida.out content
-        with self.retrieved.open(output_filename, 'r') as handle:
-            content=handle.read()
-            output_node = SinglefileData(file=handle)
-            if 'CONGRATULATIONS' not in content:
-                self.out('output_file', output_node)
-                return ExitCode(1)
             
         # add output file
-        self.logger.info("Parsing '{}'".format(output_filename))
-        with self.retrieved.open(output_filename, 'rb') as handle:
+        self.logger.info(f"Parsing '{output_filename}'")
+        with self.retrieved.open(output_filename, 'r') as handle:
             output_node = SinglefileData(file=handle)
-        self.out('output_file', output_node)
-
+            self.out('output_file', output_node)
+            content=handle.read()
+            if 'CONGRATULATIONS' not in content:
+                return ExitCode(1)
+            
         return ExitCode(0)
