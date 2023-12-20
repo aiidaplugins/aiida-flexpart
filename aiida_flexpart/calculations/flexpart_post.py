@@ -3,9 +3,7 @@
 Calculations provided by aiida_flexpart.
 Register calculations via the "aiida.calculations" entry point in setup.json.
 """
-from aiida import orm
-from aiida.common import datastructures
-from aiida.engine import CalcJob
+from aiida import orm, common, engine
 
 
 class PostProcessingCalculation(CalcJob):
