@@ -1,16 +1,45 @@
-TEST_32:
-  longitude_of_lower_left_corner: 0007.2480
-  latitude_of_lower_left_corner: 0047.0536
-  longitude_of_upper_right_corner: 0007.2480
-  latitude_of_upper_right_corner: 0047.0536
-  lower_z_level: 00032.000
-  upper_z_level: 00032.000
-  level_type: 1 # 1 for m above ground, 2 for m above sea level
-TEST_200:
-  longitude_of_lower_left_corner: 0007.2480
-  latitude_of_lower_left_corner: 0047.0536
-  longitude_of_upper_right_corner: 0007.2480
-  latitude_of_upper_right_corner: 0047.0536
-  lower_z_level: 00200.000
-  upper_z_level: 00200.000
-  level_type: 1 # 1 for m above ground, 2 for m above sea level
+JFJ_5magl:
+  longitude: 7.9851
+  latitude: 46.5475
+  level:
+    IFS_EU_01: 3062.0
+    IFS_EU_02: 2929.0
+    cosmo7: 3121.0
+    IFS_GL_05: 3085.0
+    IFS_GL_1: 2600.0
+  level_type:
+    IFS_EU_01: 2
+    IFS_EU_02: 2
+    cosmo7: 2
+    IFS_GL_05: 2
+    IFS_GL_1: 2
+MHD_10magl:
+  longitude: -9.9046
+  latitude: 53.3267
+  level:
+    IFS_EU_01: 10.0
+    IFS_EU_02: 10.0
+    cosmo7: 10.0
+    IFS_GL_05: 10.0
+    IFS_GL_1: 10.0
+  level_type:
+    IFS_EU_01: 1
+    IFS_EU_02: 1
+    cosmo7: 1
+    IFS_GL_05: 1
+    IFS_GL_1: 1
+KIT_200magl:
+  longitude: 8.4249
+  latitude: 49.0915
+  level:
+    IFS_EU_02: 200.0
+    cosmo7: 200.0
+    IFS_EU_01: 200.0
+    IFS_GL_05: 200.0
+    IFS_GL_1: 200.0
+  level_type:
+    IFS_EU_02: 1
+    cosmo7: 1
+    IFS_EU_01: 1
+    IFS_GL_05: 1
+    IFS_GL_1: 1
