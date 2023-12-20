@@ -4,11 +4,7 @@ Parsers provided by aiida_flexpart.
 
 Register parsers via the "aiida.parsers" entry point in setup.json.
 """
-from aiida.engine import ExitCode
-from aiida.parsers.parser import Parser
-from aiida.plugins import CalculationFactory
-from aiida.common import exceptions
-from aiida.orm import SinglefileData
+from aiida.engine, parsers, plugins, common, orm
 
 FlexpartCalculation = CalculationFactory('flexpart.ifs')
 

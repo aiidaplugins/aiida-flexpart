@@ -10,9 +10,7 @@ import datetime
 import pathlib
 import jinja2
 
-from aiida import orm
-from aiida.common import datastructures
-from aiida.engine import CalcJob
+from aiida import common, orm, engine
 from ..utils import fill_in_template_file
 
 

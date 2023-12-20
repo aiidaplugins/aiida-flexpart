@@ -5,9 +5,7 @@
 import pathlib
 import click
 import yaml
-from aiida import cmdline, engine, orm
-from aiida.plugins import CalculationFactory
-from aiida.common.datastructures import StashMode
+from aiida import cmdline, engine, orm, plugins, common
 
 INPUT_DIR = pathlib.Path(__file__).resolve().parent / 'input_files'
 
