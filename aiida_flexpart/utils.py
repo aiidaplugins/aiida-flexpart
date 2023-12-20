@@ -2,6 +2,7 @@
 """Utilties to convert between python and fortran data types and formats."""
 
 import numbers
+import datetime
 import importlib
 import numpy
 import jinja2
@@ -176,8 +177,63 @@ def convert_input_to_namelist_entry(key, val, mapping=None):
 
 def fill_in_template_file(folder, fname, data):
     """Create an input file based on the standard templates."""
-    with folder.open(fname, 'w') as infile:
+
+    if 'ifs' in fname:
+        fname_ = fname[:-4]
+    else:
+        fname_ = fname
+
+    with folder.open(fname_, 'w') as infile:
         template = jinja2.Template(
             importlib.resources.read_text('aiida_flexpart.templates',
                                           fname + '.j2'))
         infile.write(template.render(data=data))
+
+
+def reformat_locations(dict_, model):
+    """reformat locations"""
+    for key in dict_.keys():
+        if 'longitude' in dict_[key]:
+            dict_[key]['longitude_of_lower_left_corner'] = dict_[key][
+                'longitude']
+            dict_[key]['longitude_of_upper_right_corner'] = dict_[key][
+                'longitude']
+            dict_[key]['latitude_of_lower_left_corner'] = dict_[key][
+                'latitude']
+            dict_[key]['latitude_of_upper_right_corner'] = dict_[key][
+                'latitude']
+
+            if model in dict_[key]['level']:
+                dict_[key]['lower_z_level'] = dict_[key]['level'][model]
+                dict_[key]['upper_z_level'] = dict_[key]['level'][model]
+            else:
+                dict_[key]['lower_z_level'] = dict_[key]['level']['default']
+                dict_[key]['upper_z_level'] = dict_[key]['level']['default']
+
+            dict_[key]['level_type'] = dict_[key]['level_type'][model]
+
+            dict_[key].pop('longitude')
+            dict_[key].pop('latitude')
+            dict_[key].pop('level')
+    return dict_
+
+
+def get_simulation_period(date, age_class_time, release_duration,
+                          simulation_direction):
+    """Dealing with simulation times."""
+    #initial values
+    simulation_beginning_date = datetime.datetime.strptime(
+        date, '%Y-%m-%d %H:%M:%S')
+    age_class_time = datetime.timedelta(seconds=age_class_time)
+    release_duration = datetime.timedelta(seconds=release_duration + 3600)
+
+    if simulation_direction > 0:  #forward
+        simulation_ending_date = simulation_beginning_date + release_duration + age_class_time
+    else:  #backward
+        simulation_ending_date = release_duration + simulation_beginning_date
+        simulation_beginning_date -= age_class_time
+
+    return datetime.datetime.strftime(simulation_ending_date,
+                                      '%Y%m%d%H'), datetime.datetime.strftime(
+                                          simulation_beginning_date,
+                                          '%Y%m%d%H')
