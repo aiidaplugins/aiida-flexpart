@@ -2,29 +2,16 @@
 """Flexpart multi-dates WorkChain."""
 from aiida import engine, plugins, orm
 from aiida_shell import launch_shell_job
-from aiida.engine import calcfunction, while_, if_
-import datetime
+from aiida_flexpart.utils import get_simulation_period
 
-FlexpartCalculation = plugins.CalculationFactory('flexpart.cosmo')
+#plugins
+FlexpartCosmoCalculation = plugins.CalculationFactory('flexpart.cosmo')
+FlexpartIfsCalculation = plugins.CalculationFactory('flexpart.ifs')
+FlexpartPostCalculation = plugins.CalculationFactory('flexpart.post')
 
-def get_simulation_period(date,
-                   age_class_time,
-                   release_duration,
-                   simulation_direction
-                   ):
-        """Dealing with simulation times."""
-        #initial values
-        simulation_beginning_date = datetime.datetime.strptime(date,'%Y-%m-%d %H:%M:%S')
-        age_class_time = datetime.timedelta(seconds=age_class_time)
-        release_duration = datetime.timedelta(seconds=release_duration+3600)
-
-        if simulation_direction>0: #forward
-            simulation_ending_date=simulation_beginning_date+release_duration+age_class_time
-        else: #backward
-           simulation_ending_date=release_duration+simulation_beginning_date
-           simulation_beginning_date-=age_class_time
-        
-        return datetime.datetime.strftime(simulation_ending_date,'%Y%m%d%H'), datetime.datetime.strftime(simulation_beginning_date,'%Y%m%d%H')
+#possible models
+cosmo_models = ['cosmo7', 'cosmo1', 'kenda1']
+ECMWF_models = ['IFS_GL_05', 'IFS_GL_1', 'IFS_EU_02', 'IFS_EU_01']
 
 
 class FlexpartMultipleDatesWorkflow(engine.WorkChain):
@@ -33,30 +20,64 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
     def define(cls, spec):
         """Specify inputs and outputs."""
         super().define(spec)
-        # Basic Inputs
+
+        #codes
         spec.input('fcosmo_code', valid_type=orm.AbstractCode)
         spec.input('check_meteo_cosmo_code', valid_type=orm.AbstractCode)
-        spec.input('simulation_dates', valid_type=orm.List,
+        spec.input('fifs_code', valid_type=orm.AbstractCode)
+        spec.input('check_meteo_ifs_code', valid_type=orm.AbstractCode)
+        spec.input('post_processing_code', valid_type=orm.AbstractCode)
+
+        # Basic Inputs
+        spec.input('simulation_dates',
+                   valid_type=orm.List,
                    help='A list of the starting dates of the simulations')
-        spec.input('model', valid_type=orm.Str, required=True)
-        
+        spec.input('model', valid_type=orm.List, required=True)
+        spec.input('model_offline', valid_type=orm.List, required=True)
+        spec.input('offline_integration_time', valid_type=orm.Int)
+        spec.input('integration_time',
+                   valid_type=orm.Int,
+                   help='Integration time in hours')
+        spec.input(
+            'parent_calc_folder',
+            valid_type=orm.RemoteData,
+            required=False,
+            help=
+            'Working directory of a previously ran calculation to restart from.'
+        )
+
         #model settings
         spec.input('input_phy', valid_type=orm.Dict)
         spec.input('command', valid_type=orm.Dict)
         spec.input('release_settings', valid_type=orm.Dict)
-        spec.input('locations', valid_type=orm.Dict,
+        spec.input('locations',
+                   valid_type=orm.Dict,
                    help='Dictionary of locations properties.')
-        
+
         #meteo related inputs
-        spec.input('meteo_inputs', valid_type=orm.Dict,
+        spec.input('meteo_inputs',
+                   valid_type=orm.Dict,
+                   required=False,
                    help='Meteo models input params.')
-        spec.input('meteo_path', valid_type=orm.RemoteData,
-        required=True, help='Path to the folder containing the meteorological input data.')
+        spec.input('meteo_inputs_offline',
+                   valid_type=orm.Dict,
+                   required=False,
+                   help='Meteo models input params.')
+        spec.input(
+            'meteo_path',
+            valid_type=orm.List,
+            required=False,
+            help='Path to the folder containing the meteorological input data.'
+        )
+        spec.input(
+            'meteo_path_offline',
+            valid_type=orm.List,
+            required=False,
+            help='Path to the folder containing the meteorological input data.'
+        )
         spec.input('gribdir', valid_type=orm.Str, required=True)
 
         #others
-        spec.input('integration_time', valid_type=orm.Int,
-                   help='Integration time in hours')
         spec.input('outgrid', valid_type=orm.Dict)
         spec.input('outgrid_nest', valid_type=orm.Dict, required=False)
         spec.input('species', valid_type=orm.RemoteData, required=True)
@@ -65,10 +86,20 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
                              required=False,
                              dynamic=True,
                              help='#TODO')
+        spec.input_namespace('land_use_ifs',
+                             valid_type=orm.RemoteData,
+                             required=False,
+                             dynamic=True)
 
-        spec.expose_inputs(FlexpartCalculation,
+        spec.expose_inputs(FlexpartCosmoCalculation,
                            include=['metadata.options'],
-                           namespace='flexpart')
+                           namespace='flexpartcosmo')
+        spec.expose_inputs(FlexpartIfsCalculation,
+                           include=['metadata.options'],
+                           namespace='flexpartifs')
+        spec.expose_inputs(FlexpartPostCalculation,
+                           include=['metadata.options'],
+                           namespace='flexpartpost')
 
         # Outputs
         #spec.output('output_file', valid_type=orm.SinglefileData)
@@ -76,96 +107,242 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
         # What the workflow will do, step-by-step
         spec.outline(
             cls.setup,
-            while_(cls.condition)(
-            if_(cls.prepare_meteo_folder)(
-                cls.run_simulation
-                )
+            engine.while_(cls.condition)(
+                engine.if_(cls.run_cosmo)(engine.if_(
+                    cls.prepare_meteo_folder_cosmo)(cls.run_cosmo_simulation)),
+                engine.if_(cls.run_ifs)(engine.if_(
+                    cls.prepare_meteo_folder_ifs)(cls.run_ifs_simulation)),
+                cls.post_processing,
             ),
             cls.results,
         )
 
     def condition(self):
-        return True if self.ctx.index < len(self.ctx.simulation_dates) else False
+        """multi dates loop"""
+        return self.ctx.index < len(self.ctx.simulation_dates)
+
+    def run_cosmo(self):
+        """run cosmo simulation"""
+        if all(mod in cosmo_models
+               for mod in self.inputs.model) and self.inputs.model:
+            return True
+        return False
+
+    def run_ifs(self):
+        """run ifs simulation"""
+        if (all(mod in ECMWF_models for mod in self.inputs.model)
+                or all(mod in ECMWF_models
+                       for mod in self.inputs.model_offline)
+                and self.inputs.model and self.inputs.model_offline):
+            return True
+        return False
 
     def setup(self):
         """Prepare a simulation."""
 
-        self.report(f'starting setup')
+        self.report('starting setup')
 
         self.ctx.index = 0
         self.ctx.simulation_dates = self.inputs.simulation_dates
         self.ctx.integration_time = self.inputs.integration_time
-       
+        self.ctx.offline_integration_time = self.inputs.offline_integration_time
+
         #model settings
         self.ctx.release_settings = self.inputs.release_settings
         self.ctx.command = self.inputs.command
         self.ctx.input_phy = self.inputs.input_phy
         self.ctx.locations = self.inputs.locations
-        
+
         #others
         self.ctx.outgrid = self.inputs.outgrid
         self.ctx.outgrid_nest = self.inputs.outgrid_nest
         self.ctx.species = self.inputs.species
         self.ctx.land_use = self.inputs.land_use
 
-    def prepare_meteo_folder(self):
-        e_date, s_date = get_simulation_period(self.ctx.simulation_dates[self.ctx.index],
-                                    self.inputs.integration_time.value * 3600,
-                                    self.ctx.command.get_dict()["release_duration"],
-                                    self.ctx.command.get_dict()["simulation_direction"])
-        
-        self.report(f'prepare meteo from {s_date} to {e_date}')
+    def prepare_meteo_folder_ifs(self):
+        """prepare meteo folder"""
+        age_class_ = self.inputs.integration_time.value * 3600
+        if self.ctx.offline_integration_time > 0:
+            age_class_ = self.inputs.offline_integration_time.value * 3600
+        e_date, s_date = get_simulation_period(
+            self.ctx.simulation_dates[self.ctx.index], age_class_,
+            self.ctx.command.get_dict()['release_duration'],
+            self.ctx.command.get_dict()['simulation_direction'])
 
-        results, node = launch_shell_job(
-                    self.inputs.check_meteo_cosmo_code,                           
-                    arguments=' -s {sdate} -e {edate} -g {gribdir} -m {model} -a',
-                    nodes={
-                        'sdate': orm.Str(s_date),
-                        'edate': orm.Str(e_date),
-                        'gribdir': self.inputs.gribdir,
-                        'model': self.inputs.model
-                    })
+        self.report(f'preparing meteo from {s_date} to {e_date}')
 
-        return node.is_finished_ok
+        if all(mod in ECMWF_models
+               for mod in self.inputs.model) and self.inputs.model:
+            model_list = self.inputs.model
+        else:
+            model_list = self.inputs.model_offline
 
-    def run_simulation(self):
-            """Run calculations for equation of state."""
-     
-            self.report('starting flexpart cosmo')
+        node_list = []
+        for mod in model_list:
+            self.report(f'transfering {mod} meteo')
+            node = launch_shell_job(
+                self.inputs.check_meteo_ifs_code,
+                arguments=' -s {sdate} -e {edate} -g {gribdir} -m {model} -a',
+                nodes={
+                    'sdate': orm.Str(s_date),
+                    'edate': orm.Str(e_date),
+                    'gribdir': self.inputs.gribdir,
+                    'model': orm.Str(mod)
+                })
+            node_list.append(node)
 
-            builder = FlexpartCalculation.get_builder()
-            builder.code = self.inputs.fcosmo_code
+        if all(node.is_finished_ok for node in node_list):
+            self.report('ALL meteo OK')
+            return True
 
-            #update command file 
-            new_dict = self.ctx.command.get_dict()
-            new_dict['simulation_date'] = self.ctx.simulation_dates[self.ctx.index]
+        self.report('FAILED to transfer meteo')
+        self.ctx.index += 1
+        return False
+
+    def prepare_meteo_folder_cosmo(self):
+        """prepare meteo folder"""
+        e_date, s_date = get_simulation_period(
+            self.ctx.simulation_dates[self.ctx.index],
+            self.inputs.integration_time.value * 3600,
+            self.ctx.command.get_dict()['release_duration'],
+            self.ctx.command.get_dict()['simulation_direction'])
+
+        self.report(f'preparing meteo from {s_date} to {e_date}')
+
+        node_list = []
+        for mod in self.inputs.model:
+            self.report(f'transfering {mod} meteo')
+            node = launch_shell_job(
+                self.inputs.check_meteo_cosmo_code,
+                arguments=' -s {sdate} -e {edate} -g {gribdir} -m {model} -a',
+                nodes={
+                    'sdate': orm.Str(s_date),
+                    'edate': orm.Str(e_date),
+                    'gribdir': self.inputs.gribdir,
+                    'model': orm.Str(mod)
+                })
+            node_list.append(node)
+
+        if all(node.is_finished_ok for node in node_list):
+            self.report('ALL meteo OK')
+            return True
+
+        self.report('FAILED to transfer meteo')
+        self.ctx.index += 1
+        return False
+
+    def post_processing(self):
+        """post processing"""
+        self.report('starting post-processsing')
+        builder = FlexpartPostCalculation.get_builder()
+        builder.code = self.inputs.post_processing_code
+        builder.input_dir = self.ctx.calculations[-1].outputs.remote_folder
+
+        if self.ctx.offline_integration_time > 0:
+            self.report(
+                f'main: {self.ctx.calculations[-2].outputs.remote_folder}')
+            self.report(
+                f'offline: {self.ctx.calculations[-1].outputs.remote_folder}')
+            builder.input_dir = self.ctx.calculations[-2].outputs.remote_folder
+            builder.input_offline_dir = self.ctx.calculations[
+                -1].outputs.remote_folder
+
+        builder.metadata.options = self.inputs.flexpartpost.metadata.options
+
+        running = self.submit(builder)
+        self.to_context(calculations=engine.append_(running))
+
+    def run_cosmo_simulation(self):
+        """Run calculations for equation of state."""
+
+        self.report(
+            f'starting flexpart cosmo {self.ctx.simulation_dates[self.ctx.index]}'
+        )
+
+        builder = FlexpartCosmoCalculation.get_builder()
+        builder.code = self.inputs.fcosmo_code
+
+        #update command file
+        new_dict = self.ctx.command.get_dict()
+        new_dict['simulation_date'] = self.ctx.simulation_dates[self.ctx.index]
+        new_dict['age_class'] = self.inputs.integration_time * 3600
+        new_dict.update(self.inputs.meteo_inputs)
+
+        #model settings
+        builder.model_settings = {
+            'release_settings': self.ctx.release_settings,
+            'locations': self.ctx.locations,
+            'command': orm.Dict(dict=new_dict),
+            'input_phy': self.ctx.input_phy,
+        }
+
+        builder.outgrid = self.ctx.outgrid
+        builder.outgrid_nest = self.ctx.outgrid_nest
+        builder.species = self.ctx.species
+        builder.land_use = self.ctx.land_use
+        builder.meteo_path = self.inputs.meteo_path
+
+        # Walltime, memory, and resources.
+        builder.metadata.description = 'Test workflow to submit a flexpart calculation'
+        builder.metadata.options = self.inputs.flexpartcosmo.metadata.options
+
+        # Ask the workflow to continue when the results are ready and store them in the context
+        running = self.submit(builder)
+        self.to_context(calculations=engine.append_(running))
+        if self.ctx.offline_integration_time == 0:
+            self.ctx.index += 1
+
+    def run_ifs_simulation(self):
+        """Run calculations for equation of state."""
+        # Set up calculation.
+        self.report(
+            f'running flexpart ifs for {self.ctx.simulation_dates[self.ctx.index]}'
+        )
+        builder = FlexpartIfsCalculation.get_builder()
+        builder.code = self.inputs.fifs_code
+
+        #changes in the command file
+        new_dict = self.ctx.command.get_dict()
+        new_dict['simulation_date'] = self.ctx.simulation_dates[self.ctx.index]
+
+        if self.ctx.offline_integration_time > 0:
+            new_dict['age_class'] = self.ctx.offline_integration_time * 3600
+            new_dict['dumped_particle_data'] = True
+
+            self.ctx.parent_calc_folder = self.ctx.calculations[
+                -1].outputs.remote_folder
+            builder.parent_calc_folder = self.ctx.parent_calc_folder
+            self.report(f'starting from: {self.ctx.parent_calc_folder}')
+
+            builder.meteo_path = self.inputs.meteo_path_offline
+            new_dict.update(self.inputs.meteo_inputs_offline)
+
+        else:
             new_dict['age_class'] = self.inputs.integration_time * 3600
+            builder.meteo_path = self.inputs.meteo_path
             new_dict.update(self.inputs.meteo_inputs)
 
-            #model settings
-            builder.model_settings = {
-                'release_settings': self.ctx.release_settings,
-                'locations': self.ctx.locations,
-                'command': orm.Dict(dict=new_dict),
-                'input_phy': self.ctx.input_phy,
-            }
+        #model settings
+        builder.model_settings = {
+            'release_settings': self.ctx.release_settings,
+            'locations': self.ctx.locations,
+            'command': orm.Dict(dict=new_dict),
+        }
 
-            builder.outgrid = self.ctx.outgrid
-            builder.outgrid_nest = self.ctx.outgrid_nest
-            builder.species = self.ctx.species
-            builder.land_use = self.ctx.land_use
-            builder.meteo_path = self.inputs.meteo_path
+        builder.outgrid = self.ctx.outgrid
+        builder.outgrid_nest = self.ctx.outgrid_nest
+        builder.species = self.ctx.species
+        builder.land_use = self.inputs.land_use_ifs
 
-            # Walltime, memory, and resources.
-            builder.metadata.description = 'Test workflow to submit a flexpart calculation'
-            builder.metadata.options = self.inputs.flexpart.metadata.options
-            
+        # Walltime, memory, and resources.
+        builder.metadata.description = 'Test workflow to submit a flexpart calculation'
+        builder.metadata.options = self.inputs.flexpartifs.metadata.options
 
-            # Ask the workflow to continue when the results are ready and store them in the context
-            running = self.submit(builder)
-            self.to_context(calculations=engine.append_(running))
+        # Ask the workflow to continue when the results are ready and store them in the context
+        running = self.submit(builder)
+        self.to_context(calculations=engine.append_(running))
 
-            self.ctx.index += 1
+        self.ctx.index += 1
 
     def results(self):
         """Process results."""
