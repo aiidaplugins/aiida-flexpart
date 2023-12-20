@@ -6,8 +6,7 @@ import pathlib
 import datetime
 import click
 import yaml
-from aiida import orm, plugins, engine, cmdline
-from aiida.common.datastructures import StashMode
+from aiida import orm, plugins, engine, cmdline, common
 from aiida_flexpart.utils import reformat_locations
 
 
@@ -177,7 +176,7 @@ def test_run(flexpart_code):
         'source_list':
         ['aiida.out', 'header*', 'partposit_inst', 'grid_time_*.nc'],
         'target_base': f'/store/empa/em05/{username}/aiida_stash',
-        'stash_mode': StashMode.COPY.value,
+        'stash_mode': common.StashMode.COPY.value,
     }
     builder.flexpartifs.metadata.options.stash = {
         'source_list':
@@ -185,13 +184,13 @@ def test_run(flexpart_code):
         'target_base':
         f'/store/empa/em05/{username}/aiida_stash',
         'stash_mode':
-        StashMode.COPY.value,
+        common.StashMode.COPY.value,
     }
     builder.flexpartpost.metadata.options.stash = {
         'source_list':
         ['aiida.out', 'boundary_sensitivity_*.nc', 'grid_time_*.nc'],
         'target_base': f'/store/empa/em05/{username}/aiida_stash',
-        'stash_mode': StashMode.COPY.value,
+        'stash_mode': common.StashMode.COPY.value,
     }
 
     #change wall time for cosmo and ifs in seconds
