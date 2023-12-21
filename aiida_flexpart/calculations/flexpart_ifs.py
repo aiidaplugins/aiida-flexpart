@@ -29,6 +29,7 @@ class FlexpartIfsCalculation(engine.CalcJob):
         }
 
         spec.input('metadata.options.max_wallclock_seconds', valid_type=int, default=1800)
+        spec.input('metadata.options.prepend_text', valid_type=str, default='')
         spec.input('metadata.options.parser_name', valid_type=str, default='flexpart.ifs')
 
         spec.input(
