@@ -193,8 +193,8 @@ def test_run(flexpart_code):
         'stash_mode': common.StashMode.COPY.value,
     }
 
-    prepend_text_ = """#SBATCH --partition=normal
-    #SBATCH --account=em05
+    prepend_text_ = """#SBATCH --partition=low
+    #SBATCH --account=s1152
     #SBATCH --constraint=mc
     export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK:-1}
     source $MODULESHOME/init/bash

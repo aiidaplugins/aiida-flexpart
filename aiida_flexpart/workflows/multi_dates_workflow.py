@@ -180,7 +180,7 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
         node_list = []
         for mod in model_list:
             self.report(f'transfering {mod} meteo')
-            node = launch_shell_job(
+            _, node = launch_shell_job(
                 self.inputs.check_meteo_ifs_code,
                 arguments=' -s {sdate} -e {edate} -g {gribdir} -m {model} -a',
                 nodes={
@@ -212,7 +212,7 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
         node_list = []
         for mod in self.inputs.model:
             self.report(f'transfering {mod} meteo')
-            node = launch_shell_job(
+            _, node = launch_shell_job(
                 self.inputs.check_meteo_cosmo_code,
                 arguments=' -s {sdate} -e {edate} -g {gribdir} -m {model} -a',
                 nodes={
