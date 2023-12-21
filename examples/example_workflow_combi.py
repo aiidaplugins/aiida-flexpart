@@ -193,9 +193,20 @@ def test_run(flexpart_code):
         'stash_mode': common.StashMode.COPY.value,
     }
 
+    prepend_text_ = """#SBATCH --partition=low
+    #SBATCH --account=s1152
+    #SBATCH --constraint=mc
+    export OMP_NUM_THREADS=${SLURM_CPUS_PER_TASK:-1}
+    source $MODULESHOME/init/bash
+    ulimit -s unlimited
+    """
+
     #change wall time for cosmo and ifs in seconds
     builder.flexpartcosmo.metadata.options.max_wallclock_seconds = 1800
     #builder.flexpartifs.metadata.options.max_wallclock_seconds = 2700
+
+    builder.flexpartcosmo.metadata.options.prepend_text = prepend_text_
+    builder.flexpartifs.metadata.options.prepend_text = prepend_text_
 
     engine.run(builder)
 
