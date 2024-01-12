@@ -44,13 +44,18 @@ class FlexpartIfsParser(parsers.Parser):
             )
             return self.exit_codes.ERROR_MISSING_OUTPUT_FILES
 
-        # add output file
-        self.logger.info(f"Parsing '{output_filename}'")
+        # check aiida.out content
         with self.retrieved.open(output_filename, 'r') as handle:
             content = handle.read()
             output_node = orm.SinglefileData(file=handle)
-            self.out('output_file', output_node)
             if 'CONGRATULATIONS' not in content:
+                self.out('output_file', output_node)
                 return engine.ExitCode(1)
+
+        # add output file
+        self.logger.info(f"Parsing '{output_filename}'")
+        with self.retrieved.open(output_filename, 'rb') as handle:
+            output_node = orm.SinglefileData(file=handle)
+        self.out('output_file', output_node)
 
         return engine.ExitCode(0)
