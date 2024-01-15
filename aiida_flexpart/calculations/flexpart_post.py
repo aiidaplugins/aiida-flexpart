@@ -21,6 +21,8 @@ class PostProcessingCalculation(engine.CalcJob):
         }
 
         #INPUTS
+        spec.input('metadata.options.custom_scheduler_commands', valid_type=str, default='')
+        spec.input('metadata.options.withmpi', valid_type=bool, default=False)
         spec.input('metadata.options.parser_name', valid_type=str, default='flexpart.post')
         spec.input('input_dir', valid_type = orm.RemoteData, required=True,
                    help = 'main FLEXPART output dir')
