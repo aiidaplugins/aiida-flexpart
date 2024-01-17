@@ -1,5 +1,42 @@
-group-name-1:
-  - TEST_210
-group-name-2:
-  - TEST_32
-  - TEST_210
+PARIS01:
+  - BSD_248magl
+  - CBW_200magl
+  - CSP_10magl
+  - HFD_100magl
+  - MHD_10magl
+  - MLH_10magl
+  - RGL_90magl
+  - TAC_185magl
+  - TTA_222magl
+  - VAL_10magl
+  - WAO_20magl
+  - BRM_212magl
+  - BIR_75magl
+  - CMN_500magl
+  - GAT_341magl
+  - HEI_30magl
+  - HEL_110magl
+  - HPB_131magl
+  - HTM_150magl
+  - HUN_115magl
+PARIS02:
+  - JFJ_5magl
+  - KIT_200magl
+  - KRE_250magl
+  - LIN_98magl
+  - LUT_60magl
+  - NOR_100magl
+  - OPE_120magl
+  - OXK_163magl
+  - PAL_10magl
+  - SAC_100magl
+  - SMR_125magl
+  - SSL_12magl
+  - STE_252magl
+  - TOB_12magl
+  - TOH_147magl
+  - TRN_180magl
+  - UTO_57magl
+  - WES_14magl
+  - ZEP_10magl
+  - ZSF_3magl
