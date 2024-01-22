@@ -155,7 +155,6 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
 
         #others
         self.ctx.outgrid = self.inputs.outgrid
-        self.ctx.outgrid_nest = self.inputs.outgrid_nest
         self.ctx.species = self.inputs.species
         self.ctx.land_use = self.inputs.land_use
 
@@ -277,7 +276,8 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
         }
 
         builder.outgrid = self.ctx.outgrid
-        builder.outgrid_nest = self.ctx.outgrid_nest
+        if 'outgrid_nest' in self.inputs:
+            builder.outgrid_nest = self.inputs.outgrid_nest
         builder.species = self.ctx.species
         builder.land_use = self.ctx.land_use
         builder.meteo_path = self.inputs.meteo_path
@@ -330,7 +330,8 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
         }
 
         builder.outgrid = self.ctx.outgrid
-        builder.outgrid_nest = self.ctx.outgrid_nest
+        if 'outgrid_nest' in self.inputs:
+            builder.outgrid_nest = self.inputs.outgrid_nest
         builder.species = self.ctx.species
         builder.land_use = self.inputs.land_use_ifs
 
