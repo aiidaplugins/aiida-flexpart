@@ -1,3 +1,198 @@
+BIR_75magl:
+  longitude: 8.2519
+  latitude: 58.3886
+  level:
+    cosmo1: 75.0
+    cosmo7: 75.0
+    IFS_EU_01: 75.0
+    IFS_EU_02: 75.0
+    IFS_GL_05: 75.0
+  level_type:
+    cosmo1: 1
+    cosmo7: 1
+    IFS_EU_01: 1
+    IFS_EU_02: 1
+    IFS_GL_05: 1
+BRM_212magl:
+  longitude: 8.1755
+  latitude: 47.1896
+  level:
+    cosmo1: 212.0
+    cosmo7: 918.0
+    IFS_EU_01: 902.0
+    IFS_EU_02: 904.0
+    IFS_GL_05: 212.0
+  level_type:
+    cosmo1: 1
+    cosmo7: 2
+    IFS_EU_01: 2
+    IFS_EU_02: 2
+    IFS_GL_05: 1
+BSD_248magl:
+  longitude: -1.1504
+  latitude: 54.3586
+  level:
+    cosmo1: 248.0
+    cosmo7: 248.0
+    IFS_EU_01: 549.0
+    IFS_EU_02: 496.0
+    IFS_GL_05: 496.0
+  level_type:
+    cosmo1: 1
+    cosmo7: 1
+    IFS_EU_01: 2
+    IFS_EU_02: 2
+    IFS_GL_05: 2
+CBW_200magl:
+  longitude: 4.9261
+  latitude: 51.9703
+  level:
+    cosmo1: 200.0
+    cosmo7: 200.0
+    IFS_EU_01: 200.0
+    IFS_EU_02: 200.0
+    IFS_GL_05: 200.0
+  level_type:
+    cosmo1: 1
+    cosmo7: 1
+    IFS_EU_01: 1
+    IFS_EU_02: 1
+    IFS_GL_05: 1
+CMN_500magl:
+  longitude: 10.6999
+  latitude: 44.1936
+  level:
+    cosmo1: 1979.0
+    cosmo7: 1705.0
+    IFS_EU_01: 1685.0
+    IFS_EU_02: 1636.0
+    IFS_GL_05: 1308.0
+  level_type:
+    cosmo1: 2
+    cosmo7: 2
+    IFS_EU_01: 2
+    IFS_EU_02: 2
+    IFS_GL_05: 2
+CSP_10magl:
+  longitude: -6.3677
+  latitude: 52.1775
+  level:
+    cosmo1: 10.0
+    cosmo7: 10.0
+    IFS_EU_01: 10.0
+    IFS_EU_02: 10.0
+    IFS_GL_05: 10.0
+  level_type:
+    cosmo1: 1
+    cosmo7: 1
+    IFS_EU_01: 1
+    IFS_EU_02: 1
+    IFS_GL_05: 1
+GAT_341magl:
+  longitude: 11.4429
+  latitude: 53.0657
+  level:
+    cosmo1: 341.0
+    cosmo7: 341.0
+    IFS_EU_01: 341.0
+    IFS_EU_02: 341.0
+    IFS_GL_05: 341.0
+  level_type:
+    cosmo1: 1
+    cosmo7: 1
+    IFS_EU_01: 1
+    IFS_EU_02: 1
+    IFS_GL_05: 1
+HEI_30magl:
+  longitude: 8.675
+  latitude: 49.4172
+  level:
+    cosmo1: 30.0
+    cosmo7: 30.0
+    IFS_EU_01: 30.0
+    IFS_EU_02: 30.0
+    IFS_GL_05: 30.0
+  level_type:
+    cosmo1: 1
+    cosmo7: 1
+    IFS_EU_01: 1
+    IFS_EU_02: 1
+    IFS_GL_05: 1
+HEL_110magl:
+  longitude: 7.8833
+  latitude: 54.1804
+  level:
+    cosmo1: 110.0
+    cosmo7: 110.0
+    IFS_EU_01: 110.0
+    IFS_EU_02: 110.0
+    IFS_GL_05: 110.0
+  level_type:
+    cosmo1: 1
+    cosmo7: 1
+    IFS_EU_01: 1
+    IFS_EU_02: 1
+    IFS_GL_05: 1
+HFD_100magl:
+  longitude: 0.2305
+  latitude: 50.9768
+  level:
+    cosmo1: 179.0
+    cosmo7: 100.0
+    IFS_EU_01: 100.0
+    IFS_EU_02: 100.0
+    IFS_GL_05: 100.0
+  level_type:
+    cosmo1: 2
+    cosmo7: 1
+    IFS_EU_01: 1
+    IFS_EU_02: 1
+    IFS_GL_05: 1
+HPB_131magl:
+  longitude: 11.0246
+  latitude: 47.8011
+  level:
+    cosmo1: 131.0
+    cosmo7: 941.0
+    IFS_EU_01: 948.0
+    IFS_EU_02: 950.0
+    IFS_GL_05: 131.0
+  level_type:
+    cosmo1: 1
+    cosmo7: 2
+    IFS_EU_01: 2
+    IFS_EU_02: 2
+    IFS_GL_05: 1
+HTM_150magl:
+  longitude: 13.4189
+  latitude: 56.0976
+  level:
+    cosmo1: 150.0
+    cosmo7: 150.0
+    IFS_EU_01: 150.0
+    IFS_EU_02: 150.0
+    IFS_GL_05: 150.0
+  level_type:
+    cosmo1: 1
+    cosmo7: 1
+    IFS_EU_01: 1
+    IFS_EU_02: 1
+    IFS_GL_05: 1
+HUN_115magl:
+  longitude: 16.6522
+  latitude: 46.9558
+  level:
+    cosmo1: 115.0
+    cosmo7: 115.0
+    IFS_EU_01: 115.0
+    IFS_EU_02: 115.0
+    IFS_GL_05: 115.0
+  level_type:
+    cosmo1: 1
+    cosmo7: 1
+    IFS_EU_01: 1
+    IFS_EU_02: 1
+    IFS_GL_05: 1
 JFJ_5magl:
   longitude: 7.9851
   latitude: 46.5475
@@ -7,27 +202,14 @@ JFJ_5magl:
     cosmo7: 3121.0
     IFS_GL_05: 3085.0
     IFS_GL_1: 2600.0
+    cosmo1: 3472.0
   level_type:
     IFS_EU_01: 2
     IFS_EU_02: 2
     cosmo7: 2
     IFS_GL_05: 2
     IFS_GL_1: 2
-MHD_10magl:
-  longitude: -9.9046
-  latitude: 53.3267
-  level:
-    IFS_EU_01: 10.0
-    IFS_EU_02: 10.0
-    cosmo7: 10.0
-    IFS_GL_05: 10.0
-    IFS_GL_1: 10.0
-  level_type:
-    IFS_EU_01: 1
-    IFS_EU_02: 1
-    cosmo7: 1
-    IFS_GL_05: 1
-    IFS_GL_1: 1
+    cosmo1: 2
 KIT_200magl:
   longitude: 8.4249
   latitude: 49.0915
@@ -37,9 +219,388 @@ KIT_200magl:
     IFS_EU_01: 200.0
     IFS_GL_05: 200.0
     IFS_GL_1: 200.0
+    cosmo1: 200.0
   level_type:
     IFS_EU_02: 1
     cosmo7: 1
     IFS_EU_01: 1
     IFS_GL_05: 1
     IFS_GL_1: 1
+    cosmo1: 1
+KRE_250magl:
+  longitude: 15.08
+  latitude: 49.572
+  level:
+    IFS_GL_05: 250.0
+    IFS_EU_02: 250.0
+    IFS_EU_01: 250.0
+    cosmo7: 250.0
+    cosmo1: 250.0
+  level_type:
+    IFS_GL_05: 1
+    IFS_EU_02: 1
+    IFS_EU_01: 1
+    cosmo7: 1
+    cosmo1: 1
+LIN_98magl:
+  longitude: 14.1226
+  latitude: 52.1663
+  level:
+    IFS_GL_05: 98.0
+    IFS_EU_02: 98.0
+    IFS_EU_01: 98.0
+    cosmo7: 98.0
+    cosmo1: 98.0
+  level_type:
+    IFS_GL_05: 1
+    IFS_EU_02: 1
+    IFS_EU_01: 1
+    cosmo7: 1
+    cosmo1: 1
+LUT_60magl:
+  longitude: 6.3528
+  latitude: 53.4036
+  level:
+    IFS_GL_05: 60.0
+    IFS_EU_02: 60.0
+    IFS_EU_01: 60.0
+    cosmo7: 60.0
+    cosmo1: 60.0
+  level_type:
+    IFS_GL_05: 1
+    IFS_EU_02: 1
+    IFS_EU_01: 1
+    cosmo7: 1
+    cosmo1: 1
+MHD_10magl:
+  longitude: -9.9046
+  latitude: 53.3267
+  level:
+    IFS_EU_01: 10.0
+    IFS_EU_02: 10.0
+    cosmo7: 10.0
+    IFS_GL_05: 10.0
+    IFS_GL_1: 10.0
+    cosmo1: 10.0
+  level_type:
+    IFS_EU_01: 1
+    IFS_EU_02: 1
+    cosmo7: 1
+    IFS_GL_05: 1
+    IFS_GL_1: 1
+    cosmo1: 1
+MLH_10magl:
+  longitude: -7.3395
+  latitude: 55.3718
+  level:
+    cosmo1: 10.0
+    cosmo7: 10.0
+    IFS_EU_01: 10.0
+    IFS_EU_02: 10.0
+    IFS_GL_05: 10.0
+  level_type:
+    cosmo1: 1
+    cosmo7: 1
+    IFS_EU_01: 1
+    IFS_EU_02: 1
+    IFS_GL_05: 1
+NOR_100magl:
+  longitude: 17.4794
+  latitude: 60.0864
+  level:
+    IFS_GL_05: 100.0
+    IFS_EU_02: 100.0
+    IFS_EU_01: 100.0
+    cosmo7: 100.0
+    cosmo1: 100.0
+  level_type:
+    IFS_GL_05: 1
+    IFS_EU_02: 1
+    IFS_EU_01: 1
+    cosmo7: 1
+    cosmo1: 1
+OPE_120magl:
+  longitude: 5.5036
+  latitude: 48.5619
+  level:
+    IFS_GL_05: 120.0
+    IFS_EU_02: 120.0
+    IFS_EU_01: 120.0
+    cosmo7: 120.0
+    cosmo1: 120.0
+  level_type:
+    IFS_GL_05: 1
+    IFS_EU_02: 1
+    IFS_EU_01: 1
+    cosmo7: 1
+    cosmo1: 1
+OXK_163magl:
+  longitude: 11.8083
+  latitude: 50.03
+  level:
+    IFS_GL_05: 946.0
+    IFS_EU_02: 984.0
+    IFS_EU_01: 988.0
+    cosmo7: 1023.0
+    cosmo1: 1093.0
+  level_type:
+    IFS_GL_05: 2
+    IFS_EU_02: 2
+    IFS_EU_01: 2
+    cosmo7: 2
+    cosmo1: 2
+PAL_10magl:
+  longitude: 24.1157
+  latitude: 67.9733
+  level:
+    IFS_GL_05: 444.0
+    IFS_EU_02: 444.0
+    IFS_EU_01: 444.0
+    cosmo7: 12.0
+    cosmo1: 12.0
+  level_type:
+    IFS_GL_05: 2
+    IFS_EU_02: 2
+    IFS_EU_01: 2
+    cosmo7: 1
+    cosmo1: 1
+RGL_90magl:
+  longitude: -2.5399
+  latitude: 51.9975
+  level:
+    cosmo1: 90.0
+    cosmo7: 90.0
+    IFS_EU_01: 90.0
+    IFS_EU_02: 90.0
+    IFS_GL_05: 90.0
+  level_type:
+    cosmo1: 1
+    cosmo7: 1
+    IFS_EU_01: 1
+    IFS_EU_02: 1
+    IFS_GL_05: 1
+SAC_100magl:
+  longitude: 2.142
+  latitude: 48.7227
+  level:
+    IFS_GL_05: 100.0
+    IFS_EU_02: 100.0
+    IFS_EU_01: 100.0
+    cosmo7: 100.0
+    cosmo1: 100.0
+  level_type:
+    IFS_GL_05: 1
+    IFS_EU_02: 1
+    IFS_EU_01: 1
+    cosmo7: 1
+    cosmo1: 1
+SMR_125magl:
+  longitude: 24.2947
+  latitude: 61.8474
+  level:
+    IFS_GL_05: 125.0
+    IFS_EU_02: 125.0
+    IFS_EU_01: 125.0
+    cosmo7: 125.0
+    cosmo1: 125.0
+  level_type:
+    IFS_GL_05: 1
+    IFS_EU_02: 1
+    IFS_EU_01: 1
+    cosmo7: 1
+    cosmo1: 1
+SSL_12magl:
+  longitude: 7.9079
+  latitude: 47.9136
+  level:
+    IFS_GL_05: 900.0
+    IFS_EU_02: 954.0
+    IFS_EU_01: 987.0
+    cosmo7: 991.0
+    cosmo1: 1134.0
+  level_type:
+    IFS_GL_05: 2
+    IFS_EU_02: 2
+    IFS_EU_01: 2
+    cosmo7: 2
+    cosmo1: 2
+STE_252magl:
+  longitude: 8.4588
+  latitude: 53.0431
+  level:
+    IFS_GL_05: 252.0
+    IFS_EU_02: 252.0
+    IFS_EU_01: 252.0
+    cosmo7: 252.0
+    cosmo1: 252.0
+  level_type:
+    IFS_GL_05: 1
+    IFS_EU_02: 1
+    IFS_EU_01: 1
+    cosmo7: 1
+    cosmo1: 1
+TAC_185magl:
+  longitude: 1.1387
+  latitude: 52.5188
+  level:
+    cosmo1: 185.0
+    cosmo7: 185.0
+    IFS_EU_01: 185.0
+    IFS_EU_02: 185.0
+    IFS_GL_05: 185.0
+  level_type:
+    cosmo1: 1
+    cosmo7: 1
+    IFS_EU_01: 1
+    IFS_EU_02: 1
+    IFS_GL_05: 1
+TOB_12magl:
+  longitude: 8.44639
+  latitude: 50.22188
+  level:
+    IFS_GL_05: 511.0
+    IFS_EU_02: 591.0
+    IFS_EU_01: 601.0
+    cosmo7: 638.0
+    cosmo1: 682.0
+  level_type:
+    IFS_GL_05: 2
+    IFS_EU_02: 2
+    IFS_EU_01: 2
+    cosmo7: 2
+    cosmo1: 2
+TOH_147magl:
+  longitude: 10.535
+  latitude: 51.8088
+  level:
+    IFS_GL_05: 647.0
+    IFS_EU_02: 647.0
+    IFS_EU_01: 855.0
+    cosmo7: 147.0
+    cosmo1: 547.0
+  level_type:
+    IFS_GL_05: 2
+    IFS_EU_02: 2
+    IFS_EU_01: 2
+    cosmo7: 1
+    cosmo1: 2
+TRN_180magl:
+  longitude: 2.1125
+  latitude: 47.9647
+  level:
+    IFS_GL_05: 180.0
+    IFS_EU_02: 180.0
+    IFS_EU_01: 180.0
+    cosmo7: 180.0
+    cosmo1: 180.0
+  level_type:
+    IFS_GL_05: 1
+    IFS_EU_02: 1
+    IFS_EU_01: 1
+    cosmo7: 1
+    cosmo1: 1
+TTA_222magl:
+  longitude: -2.986
+  latitude: 56.5551
+  level:
+    cosmo1: 222.0
+    cosmo7: 439.0
+    IFS_EU_01: 439.0
+    IFS_EU_02: 456.0
+    IFS_GL_05: 456.0
+  level_type:
+    cosmo1: 1
+    cosmo7: 2
+    IFS_EU_01: 2
+    IFS_EU_02: 2
+    IFS_GL_05: 2
+UTO_57magl:
+  longitude: 21.3672
+  latitude: 59.7839
+  level:
+    IFS_GL_05: 57.0
+    IFS_EU_02: 57.0
+    IFS_EU_01: 57.0
+    cosmo7: 57.0
+    cosmo1: 57.0
+  level_type:
+    IFS_GL_05: 1
+    IFS_EU_02: 1
+    IFS_EU_01: 1
+    cosmo7: 1
+    cosmo1: 1
+VAL_10magl:
+  longitude: -10.403
+  latitude: 51.908
+  level:
+    cosmo1: 10.0
+    cosmo7: 10.0
+    IFS_EU_01: 10.0
+    IFS_EU_02: 10.0
+    IFS_GL_05: 10.0
+  level_type:
+    cosmo1: 1
+    cosmo7: 1
+    IFS_EU_01: 1
+    IFS_EU_02: 1
+    IFS_GL_05: 1
+WAO_20magl:
+  longitude: 1.1219
+  latitude: 52.9504
+  level:
+    cosmo1: 10.0
+    cosmo7: 10.0
+    IFS_EU_01: 10.0
+    IFS_EU_02: 10.0
+    IFS_GL_05: 10.0
+  level_type:
+    cosmo1: 1
+    cosmo7: 1
+    IFS_EU_01: 1
+    IFS_EU_02: 1
+    IFS_GL_05: 1
+WES_14magl:
+  longitude: 8.308
+  latitude: 54.9231
+  level:
+    IFS_GL_05: 14.0
+    IFS_EU_02: 14.0
+    IFS_EU_01: 14.0
+    cosmo7: 14.0
+    cosmo1: 14.0
+  level_type:
+    IFS_GL_05: 1
+    IFS_EU_02: 1
+    IFS_EU_01: 1
+    cosmo7: 1
+    cosmo1: 1
+ZEP_10magl:
+  longitude: 11.8867
+  latitude: 78.9072
+  level:
+    IFS_GL_05: 298.0
+    IFS_EU_02: 298.0
+    IFS_EU_01: 298.0
+    cosmo7: 15.0
+    cosmo1: 15.0
+  level_type:
+    IFS_GL_05: 2
+    IFS_EU_02: 2
+    IFS_EU_01: 2
+    cosmo7: 1
+    cosmo1: 1
+ZSF_3magl:
+  longitude: 10.97964
+  latitude: 47.4165
+  level:
+    IFS_GL_05: 2117.0
+    IFS_EU_02: 2037.0
+    IFS_EU_01: 2047.0
+    cosmo7: 2154.0
+    cosmo1: 2588.0
+  level_type:
+    IFS_GL_05: 2
+    IFS_EU_02: 2
+    IFS_EU_01: 2
+    cosmo7: 2
+    cosmo1: 2
