@@ -4,7 +4,30 @@ Calculations provided by aiida_flexpart.
 Register calculations via the "aiida.calculations" entry point in setup.json.
 """
 from aiida import orm, common, engine
+import yaml
 
+params_dict = {'rel.com':[],
+                'domain.str': "EUROPE",
+                'nest': False,
+                'by.month': True,
+                'overwrite': True,
+                'nn.cores': 12,
+                'debug': True,
+                'compression': "lossy",
+                'globals':{'title': "Total source sensitivities and boundary sensitivities from time-inversed LPDM simulations", 
+                            'institution': "Empa, Duebendorf, Switzerland",
+                            'author': "stephan.henne@empa.ch",
+                            'model': "FLEXPART",
+                            'model_version': "FLEXPART IFS (version 9.1_Empa)",
+                            'met_model': "ECMWFHRES",
+                            'species': "inert",
+                            'LPDM_native_output_units': "s m3 kg-1",
+                            'publication_acknowledgement': "Please acknowledge Empa in any publication that uses this data."
+                            },
+                'days':[],
+                'path':[],
+                'bs.path':[]
+                }
 
 class NewPluginCalculation(engine.CalcJob):
     """AiiDA calculation plugin."""
@@ -38,13 +61,22 @@ class NewPluginCalculation(engine.CalcJob):
         codeinfo.stdout_name = self.metadata.options.output_filename
         codeinfo.withmpi = self.inputs.metadata.options.withmpi
 
-        with folder.open('file.csv','w') as f:
+        with folder.open('params.yaml', 'w') as f:
+            rel,path,days =[],[],[]
             for i,j in self.inputs.remote.items():
-                f.write(f'{j.target_basepath}, {i[:10].replace("_", "-")}, {i[10:]}\n')
+                rel.append(i[10:])
+                path.append(j.target_basepath)
+                days.append(i[:10].replace("_", "-"))
+
+            params_dict.update({'rel.com':list(set(rel)),
+                                'path':path,
+                                'days':days
+                                    })
+            _ = yaml.dump(params_dict, f)
 
         # Prepare a `CalcInfo` to be returned to the engine
         calcinfo = common.CalcInfo()
         calcinfo.codes_info = [codeinfo]
-        calcinfo.retrieve_list = ['aiida.out']
+        calcinfo.retrieve_list = ['aiida.out','params.yaml']
 
         return calcinfo
