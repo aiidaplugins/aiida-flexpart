@@ -157,6 +157,7 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
         self.ctx.outgrid = self.inputs.outgrid
         self.ctx.species = self.inputs.species
         self.ctx.land_use = self.inputs.land_use
+        #self.base.extras.set('this',3)
 
     def prepare_meteo_folder_ifs(self):
         """prepare meteo folder"""
