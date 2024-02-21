@@ -40,7 +40,7 @@ class NewPluginCalculation(engine.CalcJob):
 
         with folder.open('file.csv','w') as f:
             for i,j in self.inputs.remote.items():
-                f.write(f'{j.target_basepath}, {i}, date\n')
+                f.write(f'{j.target_basepath}, {i[:10].replace("_", "-")}, {i[10:]}\n')
 
         # Prepare a `CalcInfo` to be returned to the engine
         calcinfo = common.CalcInfo()
