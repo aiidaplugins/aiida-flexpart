@@ -1,15 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """ifs example run"""
-
-import pathlib
-import click
-import yaml
 import aiida
-from aiida import cmdline, engine, orm, plugins, common
-from aiida.orm import QueryBuilder, RemoteStashFolderData, Dict,List,RemoteData,load_node
+from aiida import engine, orm, plugins
+from aiida.orm import QueryBuilder, RemoteStashFolderData
 aiida.load_profile()
-query_dict = {'path': [{
+
+query_dict = {
+    'path': [{
         'cls': RemoteStashFolderData,
         'tag': 'remote',
     }],
@@ -19,7 +17,7 @@ query_dict = {'path': [{
 }
 qb = QueryBuilder.from_dict(query_dict)
 
-remotes = {'a':a[1] for a in qb.all()[:1]}
+remotes = {f'a{j}': a[1] for j, a in enumerate(qb.all())}
 print(remotes)
 
 # Set up calculation.
@@ -28,4 +26,3 @@ builder = calc.get_builder()
 builder.code = orm.load_code('test_code@localhost')
 builder.remote = remotes
 engine.run(builder)
-  

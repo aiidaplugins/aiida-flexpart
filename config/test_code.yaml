@@ -2,7 +2,7 @@
 label: 'test_code'
 description: ''
 default_calc_job_plugin: 'new.post'
-filepath_executable: '/home/jovyan/test_codes/test_c'
+filepath_executable: '/home/aiida/test_codes/test_code'
 computer: localhost
 prepend_text: ""
-append_text: "" 
+append_text: ""

@@ -5,6 +5,7 @@ Register calculations via the "aiida.calculations" entry point in setup.json.
 """
 from aiida import orm, common, engine
 
+
 class NewPluginCalculation(engine.CalcJob):
     """AiiDA calculation plugin."""
     @classmethod
@@ -32,19 +33,18 @@ class NewPluginCalculation(engine.CalcJob):
     def prepare_for_submission(self, folder):
 
         codeinfo = common.CodeInfo()
-        codeinfo.cmdline_params = ['./']
+        codeinfo.cmdline_params = ['./','./']
         codeinfo.code_uuid = self.inputs.code.uuid
         codeinfo.stdout_name = self.metadata.options.output_filename
         codeinfo.withmpi = self.inputs.metadata.options.withmpi
 
         with folder.open('file.csv','w') as f:
-            #for i in self.inputs.remote:
-            #f.write(i.get_remote_path(),'\n')
-            f.write('test')
+            for i,j in self.inputs.remote.items():
+                f.write(f'{j.target_basepath}, {i}, date\n')
 
         # Prepare a `CalcInfo` to be returned to the engine
         calcinfo = common.CalcInfo()
         calcinfo.codes_info = [codeinfo]
-        calcinfo.retrieve_list = ['aiida.out','file.csv']
+        calcinfo.retrieve_list = ['aiida.out']
 
         return calcinfo

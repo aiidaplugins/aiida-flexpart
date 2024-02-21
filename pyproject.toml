@@ -21,7 +21,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
 
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.8"
 dependencies = [
     "aiida-core>=1.6.5,<3.0.0",
     "six",
