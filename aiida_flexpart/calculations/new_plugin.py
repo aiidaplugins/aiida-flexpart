@@ -71,7 +71,7 @@ class NewPluginCalculation(engine.CalcJob):
             params_dict.update({'rel.com':list(set(rel)),
                                 'path':path,
                                 'days':days,
-                                'bs.path':days
+                                'bs.path':path
                                     })
             _ = yaml.dump(params_dict, f)
 
