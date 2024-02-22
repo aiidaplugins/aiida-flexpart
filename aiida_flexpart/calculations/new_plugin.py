@@ -12,7 +12,7 @@ params_dict = {'rel.com':[],
                 'by.month': True,
                 'overwrite': True,
                 'nn.cores': 12,
-                'debug': True,
+                'debug': False,
                 'compression': "lossy",
                 'globals':{'title': "Total source sensitivities and boundary sensitivities from time-inversed LPDM simulations", 
                             'institution': "Empa, Duebendorf, Switzerland",
@@ -45,7 +45,7 @@ class NewPluginCalculation(engine.CalcJob):
         spec.input('metadata.options.custom_scheduler_commands', valid_type=str, default='')
         spec.input('metadata.options.withmpi', valid_type=bool, default=False)
         spec.input('metadata.options.output_filename', valid_type=str, default='aiida.out', required=True)
-
+        
         #Inputs
         spec.input_namespace('remote', valid_type=orm.RemoteStashFolderData, required=True)
 
@@ -56,7 +56,7 @@ class NewPluginCalculation(engine.CalcJob):
     def prepare_for_submission(self, folder):
 
         codeinfo = common.CodeInfo()
-        codeinfo.cmdline_params = ['./','./']
+        codeinfo.cmdline_params = ['-p', 'params.yaml']
         codeinfo.code_uuid = self.inputs.code.uuid
         codeinfo.stdout_name = self.metadata.options.output_filename
         codeinfo.withmpi = self.inputs.metadata.options.withmpi
@@ -78,6 +78,6 @@ class NewPluginCalculation(engine.CalcJob):
         # Prepare a `CalcInfo` to be returned to the engine
         calcinfo = common.CalcInfo()
         calcinfo.codes_info = [codeinfo]
-        calcinfo.retrieve_list = ['aiida.out','params.yaml']
+        calcinfo.retrieve_list = ['aiida.out','*.nc']
 
         return calcinfo
