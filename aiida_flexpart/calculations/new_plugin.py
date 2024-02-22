@@ -7,8 +7,8 @@ from aiida import orm, common, engine
 import yaml
 
 params_dict = {'rel.com':[],
-                'domain.str': "EUROPE",
-                'nest': False,
+                'domain.str': "EUROPE", 
+                'nest': False,  
                 'by.month': True,
                 'overwrite': True,
                 'nn.cores': 12,
@@ -70,7 +70,8 @@ class NewPluginCalculation(engine.CalcJob):
 
             params_dict.update({'rel.com':list(set(rel)),
                                 'path':path,
-                                'days':days
+                                'days':days,
+                                'bs.path':days
                                     })
             _ = yaml.dump(params_dict, f)
 
