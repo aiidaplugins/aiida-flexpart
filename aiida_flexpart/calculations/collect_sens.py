@@ -29,7 +29,7 @@ params_dict = {'rel.com':[],
                 'bs.path':[]
                 }
 
-class NewPluginCalculation(engine.CalcJob):
+class CollectSensCalculation(engine.CalcJob):
     """AiiDA calculation plugin."""
     @classmethod
     def define(cls, spec):

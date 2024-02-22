@@ -1,7 +1,7 @@
 ---
 label: 'collect-sensitivities'
 description: ''
-default_calc_job_plugin: new.post
+default_calc_job_plugin: collect.sens
 filepath_executable: '/users/shenne/progs/Rflexpart/exec/collect.sensitivities.from.AiiDA.R'
 computer: daint
 prepend_text: |

@@ -55,7 +55,7 @@ docs = [
 "flexpart.cosmo" = "aiida_flexpart.calculations.flexpart_cosmo:FlexpartCosmoCalculation"
 "flexpart.ifs" = "aiida_flexpart.calculations.flexpart_ifs:FlexpartIfsCalculation"
 "flexpart.post" = "aiida_flexpart.calculations.flexpart_post:PostProcessingCalculation"
-"new.post" = "aiida_flexpart.calculations.new_plugin:NewPluginCalculation"
+"collect.sens" = "aiida_flexpart.calculations.collect_sens:CollectSensCalculation"
 
 [project.entry-points."aiida.parsers"]
 "flexpart.cosmo" = "aiida_flexpart.parsers.flexpart_cosmo:FlexpartCosmoParser"
