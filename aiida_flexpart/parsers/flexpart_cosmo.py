@@ -50,10 +50,11 @@ class FlexpartCosmoParser(Parser):
         # add output file
         self.logger.info(f"Parsing '{output_filename}'")
         with self.retrieved.open(output_filename, 'r') as handle:
-            output_node = SinglefileData(file=handle)
-            self.out('output_file', output_node)
             content = handle.read()
+            output_node = SinglefileData(file=handle)
             if 'CONGRATULATIONS' not in content:
+                self.out('output_file', output_node)
                 return ExitCode(1)
 
+        self.out('output_file', output_node)
         return ExitCode(0)
