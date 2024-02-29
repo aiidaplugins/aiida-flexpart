@@ -3,31 +3,13 @@
 Calculations provided by aiida_flexpart.
 Register calculations via the "aiida.calculations" entry point in setup.json.
 """
+from pathlib import Path
 from aiida import orm, common, engine
 import yaml
 
-params_dict = {'rel.com':[],
-                'domain.str': "EUROPE", 
-                'nest': False,  
-                'by.month': True,
-                'overwrite': True,
-                'nn.cores': 12,
-                'debug': False,
-                'compression': "lossy",
-                'globals':{'title': "Total source sensitivities and boundary sensitivities from time-inversed LPDM simulations", 
-                            'institution': "Empa, Duebendorf, Switzerland",
-                            'author': "stephan.henne@empa.ch",
-                            'model': "FLEXPART",
-                            'model_version': "FLEXPART IFS (version 9.1_Empa)",
-                            'met_model': "ECMWFHRES",
-                            'species': "inert",
-                            'LPDM_native_output_units': "s m3 kg-1",
-                            'publication_acknowledgement': "Please acknowledge Empa in any publication that uses this data."
-                            },
-                'days':[],
-                'path':[],
-                'bs.path':[]
-                }
+with open(Path.cwd() / 'config/params.yaml', 'r') as fp:
+    params_dict = yaml.safe_load(fp)
+
 
 class CollectSensCalculation(engine.CalcJob):
     """AiiDA calculation plugin."""
@@ -45,7 +27,7 @@ class CollectSensCalculation(engine.CalcJob):
         spec.input('metadata.options.custom_scheduler_commands', valid_type=str, default='')
         spec.input('metadata.options.withmpi', valid_type=bool, default=False)
         spec.input('metadata.options.output_filename', valid_type=str, default='aiida.out', required=True)
-        
+
         #Inputs
         spec.input_namespace('remote', valid_type=orm.RemoteStashFolderData, required=True)
 
@@ -66,7 +48,7 @@ class CollectSensCalculation(engine.CalcJob):
             for i,j in self.inputs.remote.items():
                 rel.append(i[10:])
                 path.append(j.target_basepath)
-                days.append(i[:10].replace("_", "-"))
+                days.append(i[:10].replace('_', '-'))
 
             params_dict.update({'rel.com':list(set(rel)),
                                 'path':path,
