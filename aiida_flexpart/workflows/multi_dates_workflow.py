@@ -28,6 +28,9 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
         spec.input('check_meteo_ifs_code', valid_type=orm.AbstractCode)
         spec.input('post_processing_code', valid_type=orm.AbstractCode)
 
+        #extras
+        spec.input('name', valid_type=str, non_db=True, required=False)
+
         # Basic Inputs
         spec.input('simulation_dates',
                    valid_type=orm.List,
@@ -157,7 +160,9 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
         self.ctx.outgrid = self.inputs.outgrid
         self.ctx.species = self.inputs.species
         self.ctx.land_use = self.inputs.land_use
-        #self.base.extras.set('this',3)
+        if 'name' in self.inputs:
+            self.node.base.extras.set(self.inputs.name,
+                                      {'command': self.ctx.command.get_dict()})
 
     def prepare_meteo_folder_ifs(self):
         """prepare meteo folder"""

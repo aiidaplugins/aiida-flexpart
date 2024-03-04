@@ -36,7 +36,7 @@ class PostProcessingCalculation(engine.CalcJob):
     def prepare_for_submission(self, folder):
 
         params  = ['-m',self.inputs.input_dir.get_remote_path(),
-                   '-r','./'
+                   '-r','./','-p'
                   ]
         if 'input_offline_dir' in self.inputs:
             params += ['-n',self.inputs.input_offline_dir.get_remote_path()]
@@ -50,6 +50,6 @@ class PostProcessingCalculation(engine.CalcJob):
         # Prepare a `CalcInfo` to be returned to the engine
         calcinfo = common.CalcInfo()
         calcinfo.codes_info = [codeinfo]
-        calcinfo.retrieve_list = ['grid_time_*.nc', 'boundary_sensitivity_*.nc', 'aiida.out']
+        calcinfo.retrieve_list = ['grid_time_*.nc', 'boundary_sensitivity_*.nc','*.png', 'aiida.out']
 
         return calcinfo
