@@ -161,8 +161,23 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
         self.ctx.species = self.inputs.species
         self.ctx.land_use = self.inputs.land_use
         if 'name' in self.inputs:
-            self.node.base.extras.set(self.inputs.name,
-                                      {'command': self.ctx.command.get_dict()})
+            out_n = 'None'
+            if 'outgrid_nest' in self.inputs:
+                out_n = self.inputs.outgrid_nest.get_dict()
+            self.node.base.extras.set(
+                self.inputs.name, {
+                    'command': self.ctx.command.get_dict(),
+                    'input_phy': self.ctx.input_phy.get_dict(),
+                    'release': self.ctx.release_settings.get_dict(),
+                    'locations': self.ctx.locations.get_dict(),
+                    'integration_time': self.ctx.integration_time.value,
+                    'offline_integration_time':
+                    self.ctx.offline_integration_time.value,
+                    'model': self.inputs.model,
+                    'model_offline': self.inputs.model_offline,
+                    'outgrid': self.inputs.outgrid.get_dict(),
+                    'outgrid_nest': out_n
+                })
 
     def prepare_meteo_folder_ifs(self):
         """prepare meteo folder"""
@@ -281,9 +296,11 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
             'input_phy': self.ctx.input_phy,
         }
 
-        builder.outgrid = self.ctx.outgrid
+        builder.outgrid = orm.Dict(
+            list(self.ctx.outgrid.get_dict().values())[0])
         if 'outgrid_nest' in self.inputs:
-            builder.outgrid_nest = self.inputs.outgrid_nest
+            builder.outgrid_nest = orm.Dict(
+                list(self.inputs.outgrid_nest.get_dict().values())[0])
         builder.species = self.ctx.species
         builder.land_use = self.ctx.land_use
         builder.meteo_path = self.inputs.meteo_path
@@ -335,9 +352,11 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
             'command': orm.Dict(dict=new_dict),
         }
 
-        builder.outgrid = self.ctx.outgrid
+        builder.outgrid = orm.Dict(
+            list(self.ctx.outgrid.get_dict().values())[0])
         if 'outgrid_nest' in self.inputs:
-            builder.outgrid_nest = self.inputs.outgrid_nest
+            builder.outgrid_nest = orm.Dict(
+                list(self.inputs.outgrid_nest.get_dict().values())[0])
         builder.species = self.ctx.species
         builder.land_use = self.inputs.land_use_ifs
 
