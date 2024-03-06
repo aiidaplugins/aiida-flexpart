@@ -7,7 +7,7 @@ from pathlib import Path
 from aiida import orm, common, engine
 import yaml
 
-with open(Path.cwd() / 'config/params.yaml', 'r') as fp:
+with open(Path.home() / 'work/aiida-flexpart/config/params.yaml', 'r') as fp:
     params_dict = yaml.safe_load(fp)
 
 
