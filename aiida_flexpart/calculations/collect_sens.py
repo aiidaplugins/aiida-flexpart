@@ -10,6 +10,8 @@ import yaml
 with open(Path.home() / 'work/aiida-flexpart/config/params.yaml', 'r') as fp:
     params_dict = yaml.safe_load(fp)
 
+cosmo_models = ['cosmo7', 'cosmo1', 'kenda1']
+ECMWF_models = ['IFS_GL_05', 'IFS_GL_1', 'IFS_EU_02', 'IFS_EU_01']
 
 class CollectSensCalculation(engine.CalcJob):
     """AiiDA calculation plugin."""
@@ -31,6 +33,11 @@ class CollectSensCalculation(engine.CalcJob):
         #Inputs
         spec.input_namespace('remote', valid_type=orm.RemoteStashFolderData, required=True)
 
+        #EXTRA INPUTS
+        spec.input('model',valid_type = str,non_db=True, required = True)
+        spec.input('outgrid',valid_type = str,non_db=True, required = True)
+        spec.input('outgrid_n',valid_type = bool,non_db=True, required = True)
+
         #exit codes
         spec.outputs.dynamic = True
         spec.exit_code(300, 'ERROR_MISSING_OUTPUT_FILES', message='Calculation did not produce all expected output files.')
@@ -49,11 +56,19 @@ class CollectSensCalculation(engine.CalcJob):
                 rel.append(i[10:])
                 path.append(j.target_basepath)
                 days.append(i[:10].replace('_', '-'))
-
+                
+            str_ = 'IFS'
+            if self.inputs.model in cosmo_models:
+                str_='COSMO'
+            
             params_dict.update({'rel.com':list(set(rel)),
                                 'path':path,
                                 'days':days,
-                                'bs.path':path
+                                'bs.path':path,
+                                'domain.str':self.inputs.outgrid,
+                                'nest':self.inputs.outgrid_n,
+                                'met_model':self.inputs.model,
+                                'model_version':'FLEXPART '+str_
                                     })
             _ = yaml.dump(params_dict, f)
 
