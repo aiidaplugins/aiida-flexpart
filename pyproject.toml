@@ -51,6 +51,9 @@ docs = [
     "sphinx-rtd-theme",
 ]
 
+[project.entry-points."aiida.data"]
+"netcdf.data" = "aiida_flexpart.data.nc_data:NetCDFData"
+
 [project.entry-points."aiida.calculations"]
 "flexpart.cosmo" = "aiida_flexpart.calculations.flexpart_cosmo:FlexpartCosmoCalculation"
 "flexpart.ifs" = "aiida_flexpart.calculations.flexpart_ifs:FlexpartIfsCalculation"
