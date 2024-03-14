@@ -7,6 +7,7 @@ Register parsers via the "aiida.parsers" entry point in setup.json.
 from aiida import engine, parsers, plugins, common, orm
 
 FlexpartCalculation = plugins.CalculationFactory('flexpart.post')
+NetCDF = plugins.CalculationFactory('netcdf.data')
 
 
 class FlexpartPostParser(parsers.Parser):
@@ -43,6 +44,12 @@ class FlexpartPostParser(parsers.Parser):
                 f"Found files '{files_retrieved}', expected to find '{files_expected}'"
             )
             return self.exit_codes.ERROR_MISSING_OUTPUT_FILES
+
+        #for f in files_retrieved:
+        #    if f is .nc file:
+        #        object = NetCDF(f path)
+        #        object.store() ?
+        #        self.out('name', object)        
 
         # add output file
         self.logger.info(f"Parsing '{output_filename}'")
