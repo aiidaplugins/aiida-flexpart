@@ -52,7 +52,7 @@ def ncdump(nc_fid, verb=True):
     if verb:
         print("dimension information:")
         for dim in nc_dims:
-            print("\tName:", dim)
+            print(dim)
             print("\t\tsize:", len(nc_fid.dimensions[dim]))
             print_ncattr(dim)
     # Variable information.
@@ -61,7 +61,7 @@ def ncdump(nc_fid, verb=True):
         print("variable information:")
         for var in nc_vars:
             if var not in nc_dims:
-                print('\tName:', var)
+                print(var)
                 print("\t\tdimensions:", nc_fid.variables[var].dimensions)
                 print("\t\tsize:", nc_fid.variables[var].size)
                 print_ncattr(var)
@@ -71,26 +71,35 @@ def ncdump(nc_fid, verb=True):
 class NetCDFData(Data):
 
     def __init__(self, filepath, **kwargs):
+        """
+        Data plugin for Netcdf files.
+        """
+
+        nc_file = Dataset(filepath, mode='r')
+        
         super().__init__(**kwargs)
 
-        filename = os.path.basename(filepath)  # Get the filename from the absolute path
-        self.put_object_from_file(filepath, filename)  # Store the file in the repository under the given filename
-        self.base.attributes.set('filename', filename)  # Store in the attributes what the filename is
-        self.base.attributes.set('path', filepath)
+        filename = os.path.basename(filepath)  
+        self.put_object_from_file(filepath, filename)  
+        self.base.attributes.set('filename', filename)  
+        self.nc_file = nc_file
 
-        data_nest = Dataset(self.base.attributes.get('path'), mode='r')
         att_dict = {}
-        for a in data_nest.ncattrs():
-            att_dict[a] = repr(data_nest.getncattr(a))
+        for a in nc_file.ncattrs():
+            att_dict[a] = repr(nc_file.getncattr(a))
 
-        self.base.attributes.set('global_attributes', att_dict)
+        self.base.attributes.set('global_attributes', att_dict) 
 
-    
     def get_info(self):
-        data_nest = Dataset(self.base.attributes.get('path'), mode='r')
-        ncdump(data_nest)  
+        """ 
+        Print netcdf info in a similar format as ncdump -h
+        """
+        ncdump(self.nc_file)  
     
-    def get_netcdf_object(self):
-        return Dataset(self.base.attributes.get('path'), mode='r')
+    def get_netcdf(self):
+        """
+        Get NetCDF file associated with this node.
+        """
+        return self.nc_file
        
         
