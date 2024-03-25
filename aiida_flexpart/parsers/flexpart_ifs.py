@@ -8,7 +8,6 @@ from aiida import parsers, plugins, common, orm, engine
 
 FlexpartCalculation = plugins.CalculationFactory('flexpart.ifs')
 
-
 class FlexpartIfsParser(parsers.Parser):
     """
     Parser class for parsing output of calculation.

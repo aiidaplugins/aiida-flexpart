@@ -1,6 +1,8 @@
 import os
 from aiida.orm import Data
 from netCDF4 import Dataset
+import tempfile
+from pathlib import Path
 
 def ncdump(nc_fid, verb=True):
     '''
@@ -65,7 +67,6 @@ def ncdump(nc_fid, verb=True):
                 print("\t\tdimensions:", nc_fid.variables[var].dimensions)
                 print("\t\tsize:", nc_fid.variables[var].size)
                 print_ncattr(var)
-    return nc_attrs, nc_dims, nc_vars
 
 
 class NetCDFData(Data):
@@ -74,15 +75,15 @@ class NetCDFData(Data):
         """
         Data plugin for Netcdf files.
         """
-
-        nc_file = Dataset(filepath, mode='r')
         
         super().__init__(**kwargs)
+
+        nc_file = Dataset(filepath, mode='r')
 
         filename = os.path.basename(filepath)  
         self.put_object_from_file(filepath, filename)  
         self.base.attributes.set('filename', filename)  
-        self.nc_file = nc_file
+        self._nc_file = nc_file
 
         att_dict = {}
         for a in nc_file.ncattrs():
@@ -90,16 +91,14 @@ class NetCDFData(Data):
 
         self.base.attributes.set('global_attributes', att_dict) 
 
+    def _get_netcdf(self):
+        if self.is_stored:
+            return self._nc_file
+
     def get_info(self):
         """ 
         Print netcdf info in a similar format as ncdump -h
         """
-        ncdump(self.nc_file)  
+        ncdump(self._nc_file)  
     
-    def get_netcdf(self):
-        """
-        Get NetCDF file associated with this node.
-        """
-        return self.nc_file
-       
         

@@ -6,13 +6,17 @@ Register parsers via the "aiida.parsers" entry point in setup.json.
 """
 from aiida.engine import ExitCode
 from aiida.parsers.parser import Parser
-from aiida.plugins import CalculationFactory
+from aiida.plugins import CalculationFactory, DataFactory
 from aiida.common import exceptions
 from aiida.orm import SinglefileData
 
-FlexpartCalculation = CalculationFactory('flexpart.cosmo')
+from pathlib import Path
+import tempfile
 
-class FlexpartCosmoParser(Parser):
+CollectCalculation = CalculationFactory('collect.sens')
+NetCDF = DataFactory('netcdf.data') 
+
+class CollectSensParser(Parser):
     """
     Parser class for parsing output of calculation.
     """
@@ -20,14 +24,14 @@ class FlexpartCosmoParser(Parser):
         """
         Initialize Parser instance
 
-        Checks that the ProcessNode being passed was produced by a FlexpartCalculation.
+        Checks that the ProcessNode being passed was produced by a CollectCalculation.
 
         :param node: ProcessNode of calculation
         :param type node: :class:`aiida.orm.ProcessNode`
         """
         super().__init__(node)
-        if not issubclass(node.process_class, FlexpartCalculation):
-            raise exceptions.ParsingError('Can only parse FlexpartCalculation')
+        if not issubclass(node.process_class, CollectCalculation):
+            raise exceptions.ParsingError('Can only parse CollectCalculation')
 
     def parse(self, **kwargs):
         """
@@ -45,6 +49,14 @@ class FlexpartCosmoParser(Parser):
             self.logger.error("Found files '{}', expected to find '{}'".format(
                 files_retrieved, files_expected))
             return self.exit_codes.ERROR_MISSING_OUTPUT_FILES
+        
+
+        nc_file_names = [i for i in files_retrieved if '.nc' in i]
+        with tempfile.TemporaryDirectory() as td:
+            self.retrieved.copy_tree(Path(td))
+            for i in nc_file_names:
+                output_nc = NetCDF(Path(td)/i)
+                self.out(i,output_nc)
 
         # add output file
         self.logger.info(f"Parsing '{output_filename}'")

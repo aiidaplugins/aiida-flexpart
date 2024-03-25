@@ -5,10 +5,11 @@ Parsers provided by aiida_flexpart.
 Register parsers via the "aiida.parsers" entry point in setup.json.
 """
 from aiida import engine, parsers, plugins, common, orm
+from pathlib import Path
+import tempfile
 
 FlexpartCalculation = plugins.CalculationFactory('flexpart.post')
-NetCDF = plugins.CalculationFactory('netcdf.data')
-
+NetCDF = plugins.DataFactory('netcdf.data')
 
 class FlexpartPostParser(parsers.Parser):
     """
@@ -45,11 +46,12 @@ class FlexpartPostParser(parsers.Parser):
             )
             return self.exit_codes.ERROR_MISSING_OUTPUT_FILES
 
-        #for f in files_retrieved:
-        #    if f is .nc file:
-        #        object = NetCDF(f path)
-        #        object.store() ?
-        #        self.out('name', object)        
+        nc_file_names = [i for i in files_retrieved if '.nc' in i]
+        with tempfile.TemporaryDirectory() as td:
+            self.retrieved.copy_tree(Path(td))
+            for i in nc_file_names:
+                output_nc = NetCDF(Path(td)/i)
+                self.out(i,output_nc)        
 
         # add output file
         self.logger.info(f"Parsing '{output_filename}'")
