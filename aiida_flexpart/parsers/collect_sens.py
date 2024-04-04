@@ -50,7 +50,6 @@ class CollectSensParser(Parser):
                 files_retrieved, files_expected))
             return self.exit_codes.ERROR_MISSING_OUTPUT_FILES
         
-
         nc_file_names = [i for i in files_retrieved if '.nc' in i]
         with tempfile.TemporaryDirectory() as td:
             self.retrieved.copy_tree(Path(td))
