@@ -4,76 +4,11 @@ from netCDF4 import Dataset
 import tempfile
 from pathlib import Path
 
-def ncdump(nc_fid, verb=True):
-    '''
-    ncdump outputs dimensions, variables and their attribute information.
-    The information is similar to that of NCAR's ncdump utility.
-    ncdump requires a valid instance of Dataset.
-
-    Parameters
-    ----------
-    nc_fid : netCDF4.Dataset
-        A netCDF4 dateset object
-    verb : Boolean
-        whether or not nc_attrs, nc_dims, and nc_vars are printed
-
-    Returns
-    -------
-    nc_attrs : list
-        A Python list of the NetCDF file global attributes
-    nc_dims : list
-        A Python list of the NetCDF file dimensions
-    nc_vars : list
-        A Python list of the NetCDF file variables
-    '''
-    def print_ncattr(key):
-        """
-        Prints the NetCDF file attributes for a given key
-
-        Parameters
-        ----------
-        key : unicode
-            a valid netCDF4.Dataset.variables key
-        """
-        try:
-            print("\t\ttype:", repr(nc_fid.variables[key].dtype))
-            for ncattr in nc_fid.variables[key].ncattrs():
-                print('\t\t%s:' % ncattr,\
-                      repr(nc_fid.variables[key].getncattr(ncattr)))
-        except KeyError:
-            print("\t\tWARNING: %s does not contain variable attributes" % key)
-
-    # NetCDF global attributes
-    nc_attrs = nc_fid.ncattrs()
-    if verb:
-        print ("Global Attributes:")
-        for nc_attr in nc_attrs:
-            print('\t%s:' % nc_attr, repr(nc_fid.getncattr(nc_attr)))
-    nc_dims = [dim for dim in nc_fid.dimensions]  # list of nc dimensions
-    # Dimension shape information.
-    if verb:
-        print("dimension information:")
-        for dim in nc_dims:
-            print(dim)
-            print("\t\tsize:", len(nc_fid.dimensions[dim]))
-            print_ncattr(dim)
-    # Variable information.
-    nc_vars = [var for var in nc_fid.variables]  # list of nc variables
-    if verb:
-        print("variable information:")
-        for var in nc_vars:
-            if var not in nc_dims:
-                print(var)
-                print("\t\tdimensions:", nc_fid.variables[var].dimensions)
-                print("\t\tsize:", nc_fid.variables[var].size)
-                print_ncattr(var)
-
-
 class NetCDFData(Data):
 
     def __init__(self, filepath, **kwargs):
         """
-        Data plugin for Netcdf files.
+        Data plugin for Netcdf objects.
         """
         
         super().__init__(**kwargs)
@@ -81,24 +16,25 @@ class NetCDFData(Data):
         nc_file = Dataset(filepath, mode='r')
 
         filename = os.path.basename(filepath)  
-        self.put_object_from_file(filepath, filename)  
-        self.base.attributes.set('filename', filename)  
+        self.put_object_from_file(filepath, filename)    
         self._nc_file = nc_file
+        self._set_attributes(nc_file, filename)
 
-        att_dict = {}
+    def _set_attributes(self, nc_file, filename):
+
+        g_att = {}
         for a in nc_file.ncattrs():
-            att_dict[a] = repr(nc_file.getncattr(a))
+            g_att[a] = repr(nc_file.getncattr(a))
 
-        self.base.attributes.set('global_attributes', att_dict) 
+        self.base.attributes.set('global_attributes', g_att) 
+        self.base.attributes.set('filename', filename)
+
+    def _get_nc(self):
+        filename = self.base.attributes.get('filename')
+        with tempfile.TemporaryDirectory() as td:
+            self.copy_tree(Path(td))
+            nc_file = Dataset(Path(td)/filename, mode='r')
+            return nc_file
 
     def _get_netcdf(self):
-        if self.is_stored:
-            return self._nc_file
-
-    def get_info(self):
-        """ 
-        Print netcdf info in a similar format as ncdump -h
-        """
-        ncdump(self._nc_file)  
-    
-        
+        return self._get_nc_from_repo()

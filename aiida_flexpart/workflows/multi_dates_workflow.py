@@ -111,10 +111,12 @@ class FlexpartMultipleDatesWorkflow(engine.WorkChain):
         spec.outline(
             cls.setup,
             engine.while_(cls.condition)(
-                engine.if_(cls.run_cosmo)(engine.if_(
-                    cls.prepare_meteo_folder_cosmo)(cls.run_cosmo_simulation)),
-                engine.if_(cls.run_ifs)(engine.if_(
-                    cls.prepare_meteo_folder_ifs)(cls.run_ifs_simulation)),
+                engine.if_(cls.run_cosmo)(
+                    engine.if_(cls.prepare_meteo_folder_cosmo)(
+                        cls.run_cosmo_simulation)),
+                engine.if_(cls.run_ifs)(
+                    engine.if_(cls.prepare_meteo_folder_ifs)(
+                        cls.run_ifs_simulation)),
                 cls.post_processing,
             ),
             cls.results,
