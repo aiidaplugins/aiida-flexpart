@@ -60,6 +60,7 @@ class FlexpartCosmoCalculation(CalcJob):
 
         spec.outputs.dynamic = True
         spec.exit_code(300, 'ERROR_MISSING_OUTPUT_FILES', message='Calculation did not produce all expected output files.')
+        spec.exit_code(301, 'ERROR_MISSING_WIND_FIELDS', message='No wind fields found.')
 
     @classmethod
     def _deal_with_time(cls, command_dict):

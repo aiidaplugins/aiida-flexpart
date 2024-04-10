@@ -4,7 +4,7 @@ from netCDF4 import Dataset
 import tempfile
 from pathlib import Path
 
-class NetCDFData(Data):
+class NetcdfData(Data):
 
     def __init__(self, filepath, **kwargs):
         """
@@ -38,3 +38,6 @@ class NetCDFData(Data):
 
     def _get_netcdf(self):
         return self._get_nc_from_repo()
+    
+    def p_ncdump(self):
+        pass
