@@ -18,7 +18,6 @@ class CollectSensCalculation(engine.CalcJob):
     @classmethod
     def define(cls, spec):
         """Define inputs and outputs of the calculation."""
-        # yapf: disable
         super().define(spec)
 
         #INPUTS metadata
