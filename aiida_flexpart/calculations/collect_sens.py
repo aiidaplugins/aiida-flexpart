@@ -14,10 +14,11 @@ cosmo_models = ['cosmo7', 'cosmo1', 'kenda1']
 ECMWF_models = ['IFS_GL_05', 'IFS_GL_1', 'IFS_EU_02', 'IFS_EU_01']
 
 class CollectSensitivitesCalculation(engine.CalcJob):
-    """AiiDA calculation plugin."""
+    """AiiDA calculation plugin for the collection of sensitivities.
+       The main input are the stashed Netcdf files for the previous FLEXPART
+       calculations. """
     @classmethod
     def define(cls, spec):
-        """Define inputs and outputs of the calculation."""
         super().define(spec)
 
         #INPUTS metadata
