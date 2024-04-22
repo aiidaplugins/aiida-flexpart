@@ -1,0 +1,23 @@
+bs.path:
+by.month: true
+compression: lossy
+days:
+debug: false
+domain.str: EUROPE
+globals:
+  LPDM_native_output_units: s m3 kg-1
+  author: stephan.henne@empa.ch
+  institution: Empa, Duebendorf, Switzerland
+  met_model: ECMWFHRES
+  model: FLEXPART
+  model_version: FLEXPART IFS (version 9.1_Empa)
+  publication_acknowledgement: Please acknowledge Empa in any publication that uses
+    this data.
+  species: inert
+  title: Total source sensitivities and boundary sensitivities from time-inversed
+    LPDM simulations
+nest: false
+nn.cores: 12
+overwrite: true
+path:
+rel.com:
