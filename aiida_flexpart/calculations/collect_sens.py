@@ -13,7 +13,7 @@ with open(Path.home() / 'work/aiida-flexpart/config/params.yaml', 'r') as fp:
 cosmo_models = ['cosmo7', 'cosmo1', 'kenda1']
 ECMWF_models = ['IFS_GL_05', 'IFS_GL_1', 'IFS_EU_02', 'IFS_EU_01']
 
-class CollectSensitivitesCalculation(engine.CalcJob):
+class CollectSensitivitiesCalculation(engine.CalcJob):
     """AiiDA calculation plugin for the collection of sensitivities.
        The main input are the stashed Netcdf files for the previous FLEXPART
        calculations. """
