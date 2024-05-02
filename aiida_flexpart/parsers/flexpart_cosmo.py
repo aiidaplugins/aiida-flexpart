@@ -54,6 +54,8 @@ class FlexpartCosmoParser(Parser):
             if 'CONGRATULATIONS' not in content:
                 self.out('output_file', output_node)
                 return ExitCode(1)
+            
+            #'FLEXPART MODEL ERROR! NO WIND FIELDS'
 
         self.out('output_file', output_node)
         return ExitCode(0)
