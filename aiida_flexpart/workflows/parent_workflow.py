@@ -34,13 +34,11 @@ class ParentWorkflow(engine.WorkChain):
             child = self.submit(FlexpartSimWorkflow,
                                 **self.exposed_inputs(FlexpartSimWorkflow),
                                 date=orm.Int(i))
-            key = f'workchains.sub{i}'
-            self.to_context(**{key: child})
+            self.to_context(workchains=engine.append_(child))
 
     def finalize(self):
         self.out_many(self.exposed_outputs(self.ctx.child_1, TransferMeteoWorkflow))
-        for i in range():
-            k = f'workchains.sub{i}'
+        for w in  self.ctx.workchains:
             self.out_many(
-                self.exposed_outputs(self.ctx[k], FlexpartSimWorkflow)
+                self.exposed_outputs(w, FlexpartSimWorkflow)
                 )

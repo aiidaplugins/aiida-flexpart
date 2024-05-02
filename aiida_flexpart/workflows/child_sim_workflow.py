@@ -136,7 +136,7 @@ class FlexpartSimWorkflow(engine.WorkChain):
         return False
     
     def inspect_calculation(self):
-        if not self.ctx.calculation[-1].is_finished_ok:
+        if not self.ctx.calculations[-1].is_finished_ok:
             self.report('ERROR calculation did not finish ok')
             return self.exit_codes.ERROR_CALCULATION_FAILED
         self.report('calculation successfull')
