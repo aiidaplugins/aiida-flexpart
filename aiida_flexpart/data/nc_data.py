@@ -4,40 +4,52 @@ from netCDF4 import Dataset
 import tempfile
 from pathlib import Path
 
-class NetcdfData(Data):
+class NetCDFData(Data):
 
-    def __init__(self, filepath, **kwargs):
+    def __init__(self, filepath=None, remote_path=None, **kwargs):
         """
         Data plugin for Netcdf objects.
         """
-        
         super().__init__(**kwargs)
+        if filepath is not None:
+            filename = os.path.basename(filepath)
+            self.set_remote_path(remote_path)
+            self.set_filename(filename)
 
-        nc_file = Dataset(filepath, mode='r')
+            #open and read as NetCDF
+            nc_file = Dataset(filepath, mode='r')
+            self.set__global_attributes(nc_file)
 
-        filename = os.path.basename(filepath)  
-        self.put_object_from_file(filepath, filename)    
-        self._nc_file = nc_file
-        self._set_attributes(nc_file, filename)
+            #put object in repo
+            #self.put_object_from_file(filepath, filename)    
 
-    def _set_attributes(self, nc_file, filename):
+    def set_remote_path(self, val):
+        self.base.attributes.set('remote_path', val)
+
+    def get_remote_path(self) -> str:
+        return self.base.attributes.get('remote_path')
+
+    def set_filename(self, val):
+        self.base.attributes.set('filename', val)
+
+    def set__global_attributes(self, nc_file):
 
         g_att = {}
         for a in nc_file.ncattrs():
             g_att[a] = repr(nc_file.getncattr(a))
-
         self.base.attributes.set('global_attributes', g_att) 
-        self.base.attributes.set('filename', filename)
 
-    def _get_nc(self):
-        filename = self.base.attributes.get('filename')
-        with tempfile.TemporaryDirectory() as td:
-            self.copy_tree(Path(td))
-            nc_file = Dataset(Path(td)/filename, mode='r')
-            return nc_file
+        nc_dimensions = {i:len(nc_file.dimensions[i]) for i in nc_file.dimensions}
+        self.base.attributes.set('dimensions', nc_dimensions)
 
-    def _get_netcdf(self):
-        return self._get_nc_from_repo()
-    
-    def p_ncdump(self):
-        pass
+    def ncdump(self):
+        """
+        Small python version of ncdump.
+        """
+        print("dimensions:")
+        for k,v in self.base.attributes.get('dimensions').items():
+            print('\t%s =' %k,v)
+
+        print('// global attributes:')
+        for k,v in self.base.attributes.get('global_attributes').items():
+            print('\t:%s =' %k,v)
