@@ -39,8 +39,8 @@ class ParentWorkflow(engine.WorkChain):
 
     def finalize(self):
         self.out_many(self.exposed_outputs(self.ctx.child_1, TransferMeteoWorkflow))
-        """ for i in range():
+        for i in range():
+            k = f'workchains.sub{i}'
             self.out_many(
-                self.exposed_outputs(self.ctx.workchains.sub1, FlexpartSimWorkflow)
-        )
-"""
+                self.exposed_outputs(self.ctx[k], FlexpartSimWorkflow)
+                )
