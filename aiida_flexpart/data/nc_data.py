@@ -1,10 +1,10 @@
 import os
-from aiida.orm import Data
+from aiida.orm import RemoteData
 from netCDF4 import Dataset
 import tempfile
 from pathlib import Path
 
-class NetCDFData(Data):
+class NetCDFData(RemoteData):
 
     def __init__(self, filepath=None, remote_path=None, **kwargs):
         """
@@ -22,12 +22,6 @@ class NetCDFData(Data):
 
             #put object in repo
             #self.put_object_from_file(filepath, filename)    
-
-    def set_remote_path(self, val):
-        self.base.attributes.set('remote_path', val)
-
-    def get_remote_path(self) -> str:
-        return self.base.attributes.get('remote_path')
 
     def set_filename(self, val):
         self.base.attributes.set('filename', val)
