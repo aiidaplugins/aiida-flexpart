@@ -65,6 +65,10 @@ docs = [
 [project.entry-points."aiida.workflows"]
 "flexpart.multi_dates" = "aiida_flexpart.workflows.multi_dates_workflow:FlexpartMultipleDatesWorkflow"
 
+[project.entry-points."aiida.data"]
+"netcdf.data" = "aiida_flexpart.data.nc_data:NetCDFData"
+
+
 [tool.pylint.format]
 max-line-length = 125
 
