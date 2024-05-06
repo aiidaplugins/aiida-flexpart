@@ -16,7 +16,7 @@ class NetCDFData(RemoteData):
 
             # open and read as NetCDF
             nc_file = Dataset(filepath, mode="r")
-            self.set__global_attributes(nc_file)
+            self.set_global_attributes(nc_file)
 
     def set_filename(self, val):
         self.base.attributes.set("filename", val)
