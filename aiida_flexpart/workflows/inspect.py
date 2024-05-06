@@ -7,6 +7,11 @@ import tempfile
 NetCDF = DataFactory("netcdf.data")
 
 def check(nc_file):
+    """
+    Checks if there is a netcdf file stored with the same name,
+    if so, it checks the created date, if that is a match then returns
+    False.
+    """
     qb = orm.QueryBuilder()
     qb.append(
             NetCDF,
@@ -35,26 +40,20 @@ class InspectWorkflow(WorkChain):
     @classmethod
     def define(cls, spec):
         super().define(spec)
-        spec.input('remotes',valid_type=orm.RemoteData,required=False)
-        spec.input_namespace('remotes_cs', valid_type=orm.RemoteStashFolderData, required=False)
+        spec.input_namespace('remotes',valid_type=orm.RemoteData,required=False)
         spec.outputs.dynamic = True
         spec.outline(
             cls.inspect,
-            cls.save_file,
             cls.results,
         )
 
     def inspect(self):
-        self.ctx.list_files = [] 
-        if 'remotes' in self.inputs:
-            for i in self.inputs.remotes.listdir()[:10]:
-                if '.nc' in i:
-                    self.ctx.list_files.append(i)
-                
-    def save_file(self):
-        for i in self.ctx.list_files:
-            self.report(f'processing {i}')
-            store(i,self.inputs.remotes)
-
+        self.ctx.list_files = []
+        for v in self.inputs.remotes.values():
+                for i in v.listdir():
+                    if '.nc' in i:
+                        self.ctx.list_files.append(i)
+                        store(i,v)
+                    
     def results(self):
         self.out('result', self.ctx.list_files)

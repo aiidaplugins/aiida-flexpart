@@ -49,20 +49,13 @@ class CollectSensParser(Parser):
             self.logger.error("Found files '{}', expected to find '{}'".format(
                 files_retrieved, files_expected))
             return self.exit_codes.ERROR_MISSING_OUTPUT_FILES
-        
-        nc_file_names = [i for i in files_retrieved if '.nc' in i]
-        with tempfile.TemporaryDirectory() as td:
-            self.retrieved.copy_tree(Path(td))
-            for i in nc_file_names:
-                output_nc = NetCDF(Path(td)/i)
-                self.out(i,output_nc)
 
         # add output file
         self.logger.info(f"Parsing '{output_filename}'")
         with self.retrieved.open(output_filename, 'r') as handle:
             content = handle.read()
             output_node = SinglefileData(file=handle)
-            if 'CONGRATULATIONS' not in content:
+            if 'Writing' not in content:
                 self.out('output_file', output_node)
                 return ExitCode(1)
 

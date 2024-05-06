@@ -44,14 +44,7 @@ class FlexpartPostParser(parsers.Parser):
             self.logger.error(
                 f"Found files '{files_retrieved}', expected to find '{files_expected}'"
             )
-            return self.exit_codes.ERROR_MISSING_OUTPUT_FILES
-
-        nc_file_names = [i for i in files_retrieved if '.nc' in i]
-        with tempfile.TemporaryDirectory() as td:
-            self.retrieved.copy_tree(Path(td))
-            for i in nc_file_names:
-                output_nc = NetCDF(Path(td)/i)
-                self.out(i,output_nc)        
+            return self.exit_codes.ERROR_MISSING_OUTPUT_FILES       
 
         # add output file
         self.logger.info(f"Parsing '{output_filename}'")
