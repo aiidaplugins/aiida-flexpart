@@ -6,7 +6,7 @@ import tempfile
 
 NetCDF = DataFactory("netcdf.data")
 
-def check(nc_file):
+def check(nc_file,version):
     """
     Checks if there is a netcdf file stored with the same name,
     if so, it checks the created date, if that is a match then returns
@@ -15,17 +15,21 @@ def check(nc_file):
     qb = orm.QueryBuilder()
     qb.append(
             NetCDF,
-            project=["attributes.global_attributes.created"],
+            project=[f"attributes.global_attributes.{version}"],
             filters={"attributes.filename": nc_file.attributes['filename']},
             )
     if qb.all():
         for i in qb.all():
-            if i[0] == nc_file.attributes['global_attributes']['created']:
+            if i[0] == nc_file.attributes['global_attributes'][version]:
                 return False
     return True
 
 def validate_version(nc_file):
-    return 'created' in nc_file.attributes['global_attributes'].keys()
+    if 'history' in nc_file.attributes['global_attributes'].keys():
+        return 'history'
+    elif 'created' in nc_file.attributes['global_attributes'].keys():
+        return 'created'
+    return None
     
 @calcfunction
 def store(i,folder):
@@ -35,9 +39,10 @@ def store(i,folder):
                         remote_path = str(Path(folder.get_remote_path())),
                         computer = folder.computer
                      )
-        if validate_version(node):
-            return node
-        if check(node):
+        
+        if validate_version(node) == None:
+            return  
+        elif check(node,validate_version(node)):
             return node
         return
         
