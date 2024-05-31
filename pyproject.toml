@@ -52,7 +52,7 @@ docs = [
 ]
 
 [project.entry-points."aiida.data"]
-"netcdf.data" = "aiida_flexpart.data.nc_data:NetCDFData"
+"netcdf.data" = "aiida_flexpart.data.nc_data:NetCdfData"
 
 [project.entry-points."aiida.calculations"]
 "flexpart.cosmo" = "aiida_flexpart.calculations.flexpart_cosmo:FlexpartCosmoCalculation"

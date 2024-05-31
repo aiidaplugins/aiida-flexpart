@@ -3,6 +3,7 @@ from aiida.plugins import DataFactory
 from aiida import orm
 from pathlib import Path
 import tempfile
+from netCDF4 import Dataset
 
 NetCDF = DataFactory("netcdf.data")
 
@@ -32,31 +33,46 @@ def validate_version(nc_file):
     return None
     
 @calcfunction
-def store(i,folder):
-    with tempfile.TemporaryDirectory() as td:
-        folder.getfile(Path(folder.get_remote_path())/i.value, Path(td)/i.value)
-        node = NetCDF(str(Path(td)/i.value),
-                        remote_path = str(Path(folder.get_remote_path())),
-                        computer = folder.computer
-                     )
-        
-        if validate_version(node) == None:
-            return  
-        elif check(node,validate_version(node)):
-            return node
-        return
+def store(remote_dir):
+    for folder in remote_dir:
+        for file in folder.listdir():
+            if '.nc' in file:
+                with tempfile.TemporaryDirectory() as td:
+                    remote_path = Path(folder.get_remote_path())/file.value
+                    temp_path = Path(td)/file.value
+                    folder.getfile(remote_path, temp_path)
+                        
+                    #fill global attributes and dimensions
+                    nc_file = Dataset(str(temp_path), mode="r")
+                    nc_dimensions = {i: len(nc_file.dimensions[i]) for i in nc_file.dimensions}
+                    global_att = {}
+                    for a in nc_file.ncattrs():
+                        global_att[a] = repr(nc_file.getncattr(a))
+
+                    #do check
+                    node = NetCDF(str(temp_path),
+                                remote_path = str(remote_path),
+                                computer = folder.computer,
+                                g_att = global_att,
+                                nc_dimensions = nc_dimensions
+                                        )
+                            
+                    if validate_version(node) == None:
+                        return  
+                    elif check(node,validate_version(node)):
+                        return node
+                    return
         
 class InspectWorkflow(WorkChain):
     @classmethod
     def define(cls, spec):
         super().define(spec)
-        spec.input_namespace('remotes',valid_type=orm.RemoteData,required=False)
+        spec.input_namespace('remotes',valid_type=(orm.RemoteData,orm.RemoteStashFolderData),required=False)
         spec.input_namespace('remotes_cs',valid_type=orm.RemoteStashFolderData,required=False)
         spec.outputs.dynamic = True
         spec.outline(
             cls.fill_remote_data,
             cls.inspect,
-            cls.results,
         )
 
     def fill_remote_data(self):
@@ -69,12 +85,4 @@ class InspectWorkflow(WorkChain):
                                                 computer = v.computer
                                                 )
     def inspect(self):
-        self.ctx.list_files = []
-        for v in self.ctx.dict_remote_data.values():
-                for i in v.listdir():
-                    if '.nc' in i:
-                        self.ctx.list_files.append(i)
-                        store(i,v)
-                    
-    def results(self):
-        self.out('result', self.ctx.list_files)
+        store(self.ctx.dict_remote_data.values())
