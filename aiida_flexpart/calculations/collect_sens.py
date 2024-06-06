@@ -6,9 +6,11 @@ Register calculations via the "aiida.calculations" entry point in setup.json.
 from pathlib import Path
 from aiida import orm, common, engine
 import yaml
+import importlib
 
-with open(Path.home() / 'work/aiida-flexpart/config/params.yaml', 'r') as fp:
-    params_dict = yaml.safe_load(fp)
+with importlib.resources.path('aiida_flexpart.templates', "params.yaml") as p:
+    with open(p, 'r') as fp:
+        params_dict = yaml.safe_load(fp)
 
 cosmo_models = ['cosmo7', 'cosmo1', 'kenda1']
 ECMWF_models = ['IFS_GL_05', 'IFS_GL_1', 'IFS_EU_02', 'IFS_EU_01']
