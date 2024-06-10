@@ -6,6 +6,7 @@ import tempfile
 from netCDF4 import Dataset
 
 NetCDF = DataFactory("netcdf.data")
+#/project/s1302/shenne/PARIS/obs_for_ELRIS_20240604
 
 def check(nc_file,version):
     """
@@ -33,14 +34,11 @@ def validate_version(nc_file):
     return None
     
 @calcfunction
-def store(remote_dir):
-    for folder in remote_dir:
-        for file in folder.listdir():
-            if '.nc' in file:
+def store(remote_dir,file):
                 with tempfile.TemporaryDirectory() as td:
-                    remote_path = Path(folder.get_remote_path())/file.value
+                    remote_path = Path(remote_dir.get_remote_path())/file.value
                     temp_path = Path(td)/file.value
-                    folder.getfile(remote_path, temp_path)
+                    remote_dir.getfile(remote_path, temp_path)
                         
                     #fill global attributes and dimensions
                     nc_file = Dataset(str(temp_path), mode="r")
@@ -52,7 +50,7 @@ def store(remote_dir):
                     #do check
                     node = NetCDF(str(temp_path),
                                 remote_path = str(remote_path),
-                                computer = folder.computer,
+                                computer = remote_dir.computer,
                                 g_att = global_att,
                                 nc_dimensions = nc_dimensions
                                         )
@@ -67,7 +65,7 @@ class InspectWorkflow(WorkChain):
     @classmethod
     def define(cls, spec):
         super().define(spec)
-        spec.input_namespace('remotes',valid_type=(orm.RemoteData,orm.RemoteStashFolderData),required=False)
+        spec.input_namespace('remotes',valid_type=orm.RemoteData,required=False)
         spec.input_namespace('remotes_cs',valid_type=orm.RemoteStashFolderData,required=False)
         spec.outputs.dynamic = True
         spec.outline(
@@ -85,4 +83,7 @@ class InspectWorkflow(WorkChain):
                                                 computer = v.computer
                                                 )
     def inspect(self):
-        store(self.ctx.dict_remote_data.values())
+        for _,i in self.ctx.dict_remote_data.items():
+            for file in i.listdir():
+                if '.nc' in file:
+                    store(i,file)
