@@ -12,10 +12,7 @@ class NetCdfData(RemoteData):
             filename = os.path.basename(filepath)
             self.set_remote_path(remote_path)
             self.set_filename(filename)
-
-            
-            self.set_global_attributes(g_att,
-                                       nc_dimensions)
+            self.set_global_attributes(g_att,nc_dimensions)
 
     def set_filename(self, val):
         self.base.attributes.set("filename", val)

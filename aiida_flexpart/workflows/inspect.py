@@ -6,7 +6,6 @@ import tempfile
 from netCDF4 import Dataset
 
 NetCDF = DataFactory("netcdf.data")
-#/project/s1302/shenne/PARIS/obs_for_ELRIS_20240604
 
 def check(nc_file,version):
     """
@@ -26,12 +25,8 @@ def check(nc_file,version):
                 return False
     return True
 
-def validate_version(nc_file):
-    if 'history' in nc_file.attributes['global_attributes'].keys():
-        return 'history'
-    elif 'created' in nc_file.attributes['global_attributes'].keys():
-        return 'created'
-    return None
+def validate_history(nc_file):
+    return True if 'history' in nc_file.attributes['global_attributes'].keys() else None
     
 @calcfunction
 def store(remote_dir,file):
@@ -47,7 +42,6 @@ def store(remote_dir,file):
                     for a in nc_file.ncattrs():
                         global_att[a] = repr(nc_file.getncattr(a))
 
-                    #do check
                     node = NetCDF(str(temp_path),
                                 remote_path = str(remote_path),
                                 computer = remote_dir.computer,
@@ -55,11 +49,10 @@ def store(remote_dir,file):
                                 nc_dimensions = nc_dimensions
                                         )
                             
-                    if validate_version(node) == None:
+                    if validate_history(node) == None:
                         return  
-                    elif check(node,validate_version(node)):
+                    elif check(node,"history"):
                         return node
-                    return
         
 class InspectWorkflow(WorkChain):
     @classmethod
