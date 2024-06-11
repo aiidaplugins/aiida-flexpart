@@ -66,7 +66,7 @@ docs = [
 "flexpart.multi_dates" = "aiida_flexpart.workflows.multi_dates_workflow:FlexpartMultipleDatesWorkflow"
 
 [project.entry-points."aiida.data"]
-"netcdf.data" = "aiida_flexpart.data.nc_data:NetCDFData"
+"netcdf.data" = "aiida_flexpart.data.nc_data:NetCdfData"
 
 
 [tool.pylint.format]
