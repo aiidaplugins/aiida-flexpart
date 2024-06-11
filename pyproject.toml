@@ -64,6 +64,7 @@ docs = [
 
 [project.entry-points."aiida.workflows"]
 "flexpart.multi_dates" = "aiida_flexpart.workflows.multi_dates_workflow:FlexpartMultipleDatesWorkflow"
+"inspect.workflow" = "aiida_flexpart.workflows.inspect:InspectWorkflow"
 
 [project.entry-points."aiida.data"]
 "netcdf.data" = "aiida_flexpart.data.nc_data:NetCdfData"
