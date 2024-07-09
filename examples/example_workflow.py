@@ -74,7 +74,7 @@ def test_run(flexpart_code):
         computer=flexpart_code.computer)
     
     #builder starts
-    workflow = plugins.WorkflowFactory('flexpart.multi_dates')
+    workflow = plugins.WorkflowFactory('flexpart.multi_workflow')
     builder = workflow.get_builder()
     builder.fcosmo_code = flexpart_code
     builder.check_meteo_cosmo_code =  orm.load_code('check-cosmo-data@daint-direct-106')

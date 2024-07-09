@@ -31,7 +31,7 @@ class FlexpartSimWorkflow(engine.WorkChain):
 
         # Basic Inputs
         spec.expose_inputs(TransferMeteoWorkflow)
-        spec.input("date", valid_type=orm.Int, required=False)
+        spec.input("date", valid_type=orm.Str, required=False)
 
         # Model settings
         # Command is exposed form TransferMeteoWorkflow
@@ -143,7 +143,7 @@ class FlexpartSimWorkflow(engine.WorkChain):
 
     def setup(self):
 
-        self.ctx.simulation_date = self.inputs.simulation_dates[self.inputs.date.value]
+        self.ctx.simulation_date = self.inputs.date.value
         self.ctx.integration_time = self.inputs.integration_time
         self.ctx.offline_integration_time = self.inputs.offline_integration_time
 

@@ -66,12 +66,12 @@ def simulation_dates_parser(date_list: list) -> list:
 def test_run(flexpart_code):
     """Run workflow."""
 
-    simulation_dates = simulation_dates_parser(['2020-10-01'])
+    simulation_dates = simulation_dates_parser(['2020-10-01,2020-10-02,2020-10-03'])
     model = ['cosmo7']
     model_offline = []
     username = 'lfernand'
-    outgrid_main = 'Europe'
-    outgrid_nest = 'Switzerland'
+    outgrid_main = 'EUROPE'
+    outgrid_nest = 'EUROPE-6km'
     integration_time = 24
     integration_time_offline = 0
 
@@ -100,7 +100,7 @@ def test_run(flexpart_code):
     parent_folder = None
 
     #builder starts
-    workflow = plugins.WorkflowFactory('flexpart.multi_dates')
+    workflow = plugins.WorkflowFactory('flexpart.multi_workflow')
     builder = workflow.get_builder()
     builder.fcosmo_code = flexpart_code
     builder.fifs_code = orm.load_code('flexpart_ifs@daint')
@@ -154,11 +154,11 @@ def test_run(flexpart_code):
     builder.outgrid = orm.Dict(
         dict=read_yaml_data('inputs/outgrid.yaml', names=[
             outgrid_main,
-        ])[outgrid_main])
+        ]))
     builder.outgrid_nest = orm.Dict(
         dict=read_yaml_data('inputs/outgrid.yaml', names=[
             outgrid_nest,
-        ])[outgrid_nest])
+        ]))
     builder.species = species
     builder.land_use = {
         'glc': glc,
@@ -170,7 +170,6 @@ def test_run(flexpart_code):
         'surfdata': surfdata,
         'surfdepo': surfdepo,
     }
-    builder.parent_calc_folder = parent_folder
 
     builder.flexpartcosmo.metadata.options.stash = {
         'source_list':

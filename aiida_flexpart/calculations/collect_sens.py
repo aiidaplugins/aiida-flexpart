@@ -7,9 +7,6 @@ from pathlib import Path
 from aiida import orm, common, engine
 import yaml
 
-with open(Path(__file__).parent.parent.parent /'config/params.yaml', 'r') as fp:
-    params_dict = yaml.safe_load(fp)
-
 cosmo_models = ['cosmo7', 'cosmo1', 'kenda1']
 ECMWF_models = ['IFS_GL_05', 'IFS_GL_1', 'IFS_EU_02', 'IFS_EU_01']
 
@@ -50,6 +47,9 @@ class CollectSensCalculation(engine.CalcJob):
         codeinfo.code_uuid = self.inputs.code.uuid
         codeinfo.stdout_name = self.metadata.options.output_filename
         codeinfo.withmpi = self.inputs.metadata.options.withmpi
+
+        with open(Path(__file__).parent.parent.parent /'config/params.yaml', 'r') as fp:
+            params_dict = yaml.safe_load(fp)
 
         with folder.open('params.yaml', 'w') as f:
             rel,path,days =[],[],[]
