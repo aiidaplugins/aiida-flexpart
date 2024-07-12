@@ -1,11 +1,23 @@
-from aiida import common, engine, plugins
+# -*- coding: utf-8 -*-
+from pathlib import Path
+from aiida import orm, common, engine
+from aiida.plugins import DataFactory
+import yaml
+import importlib
 
-NetCDF = plugins.DataFactory("netcdf.data")
+with importlib.resources.path('aiida_flexpart.templates',
+                              'inversion_settings.yaml') as p:
+    with open(p, 'r') as fp:
+        inversion_settings = yaml.safe_load(fp)
 
-class InversionCalculation(engine.CalcJob):
-    """AiiDA Inversion calculation plugin."""
+NetCDF = DataFactory('netcdf.data')
+
+
+class Inversion(engine.CalcJob):
     @classmethod
     def define(cls, spec):
+        """Define inputs and outputs of the calculation."""
+        # yapf: disable
         super().define(spec)
 
         #INPUTS metadata
@@ -16,29 +28,58 @@ class InversionCalculation(engine.CalcJob):
         spec.input('metadata.options.custom_scheduler_commands', valid_type=str, default='')
         spec.input('metadata.options.withmpi', valid_type=bool, default=False)
         spec.input('metadata.options.output_filename', valid_type=str, default='aiida.out', required=True)
-       
+        #spec.input('metadata.options.parser_name', valid_type=str, default='collect.sens')
+
         #Inputs
-        spec.input_namespace('netcdf_files', valid_type=NetCDF, required=True)
+        spec.input_namespace('remotes', valid_type = NetCDF, required=True)
+        spec.input_namespace('observations', valid_type = NetCDF, required=True)
+
+        spec.input('inv_params',valid_type = orm.Dict, required = True,
+                   help = 'File containing inversion settings, either as R source file or yaml')
+        spec.input('start_date',valid_type = orm.Str, required = True,
+                   help = 'Start date (yyyy-mm-dd)')
+        spec.input('end_date',valid_type = orm.Str, required = True,
+                   help = 'End date (yyyy-mm-dd)')
+        spec.input('chunk',valid_type = orm.Str, required = True,
+                   help = "Options are 'year' and 'month'. Default is 'year'")
+        spec.input('chunk_w',valid_type = orm.Str, required = True,
+                   help = """Width of the individual inversion chunk. These can be wider than
+			                 the chunking itself to allow for running average fluxes.,
+                             Possible values are 'year' and '3year' for 'chunk.by=year' and,
+                             'month' and '3month' for 'chunk.by=month'. Default is 'year'
+                         """)
 
         #exit codes
         spec.outputs.dynamic = True
-        spec.exit_code(300, 'ERROR_MISSING_OUTPUT_FILES', message='Calculation did not produce all expected output files.')
 
     def prepare_for_submission(self, folder):
 
         codeinfo = common.CodeInfo()
-        codeinfo.cmdline_params = ['-p', 'params_inversion.yaml']
+        codeinfo.cmdline_params = [
+            '-f',
+            'inversion_settings.yaml',
+            '-s',
+            self.inputs.start_date.value,
+            '-e',
+            self.inputs.end_date.value,
+            '-c',
+            self.inputs.chunk.value,
+            '-w',
+            self.inputs.chunk_w.value,
+        ]
         codeinfo.code_uuid = self.inputs.code.uuid
         codeinfo.stdout_name = self.metadata.options.output_filename
         codeinfo.withmpi = self.inputs.metadata.options.withmpi
 
-        with folder.open('params_inversion.yaml', 'w') as f:
-            paths = []
-            for i,j in self.inputs.netcdf_files.items():
-                paths.append(j.target_basepath)
+        if self.inputs.inv_params.value:
+            pass
+        else:
+            with folder.open('inversion_settings.yaml', 'w') as f:
+                pass
 
+        # Prepare a `CalcInfo` to be returned to the engine
         calcinfo = common.CalcInfo()
         calcinfo.codes_info = [codeinfo]
-        calcinfo.retrieve_list = ['aiida.out','*.nc']
+        calcinfo.retrieve_list = ['aiida.out', '*.nc']
 
         return calcinfo
