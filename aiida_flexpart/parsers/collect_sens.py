@@ -10,10 +10,7 @@ from aiida.plugins import CalculationFactory, DataFactory
 from aiida.common import exceptions
 from aiida.orm import SinglefileData
 
-from pathlib import Path
-import tempfile
-
-CollectCalculation = CalculationFactory('collect.sens')
+CollectCalculation = CalculationFactory('collect.sensitivities')
 NetCDF = DataFactory('netcdf.data') 
 
 class CollectSensParser(Parser):

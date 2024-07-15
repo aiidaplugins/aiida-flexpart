@@ -26,9 +26,6 @@ class FlexpartSimWorkflow(engine.WorkChain):
         spec.input("fifs_code", valid_type=orm.AbstractCode)
         spec.input("post_processing_code", valid_type=orm.AbstractCode)
 
-        #extras
-        spec.input('name', valid_type=str, non_db=True, required=False)
-
         # Basic Inputs
         spec.expose_inputs(TransferMeteoWorkflow)
         spec.input("date", valid_type=orm.Str, required=False)
@@ -157,24 +154,6 @@ class FlexpartSimWorkflow(engine.WorkChain):
         self.ctx.outgrid = self.inputs.outgrid
         self.ctx.species = self.inputs.species
         self.ctx.land_use = self.inputs.land_use
-        if 'name' in self.inputs:
-            out_n = 'None'
-            if 'outgrid_nest' in self.inputs:
-                out_n = self.inputs.outgrid_nest.get_dict()
-            self.node.base.extras.set(
-                self.inputs.name, {
-                    'command': self.ctx.command.get_dict(),
-                    'input_phy': self.ctx.input_phy.get_dict(),
-                    'release': self.ctx.release_settings.get_dict(),
-                    'locations': self.ctx.locations.get_dict(),
-                    'integration_time': self.ctx.integration_time.value,
-                    'offline_integration_time':
-                    self.ctx.offline_integration_time.value,
-                    'model': self.inputs.model,
-                    'model_offline': self.inputs.model_offline,
-                    'outgrid': self.inputs.outgrid.get_dict(),
-                    'outgrid_nest': out_n
-                })
 
     def post_processing(self):
         """post processing"""
