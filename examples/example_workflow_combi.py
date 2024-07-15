@@ -66,7 +66,7 @@ def simulation_dates_parser(date_list: list) -> list:
 def test_run(flexpart_code):
     """Run workflow."""
 
-    simulation_dates = simulation_dates_parser(['2020-10-01,2020-10-02,2020-10-03'])
+    simulation_dates = simulation_dates_parser(['2020-11-01--2020-11-05'])
     model = ['cosmo7']
     model_offline = []
     username = 'lfernand'
