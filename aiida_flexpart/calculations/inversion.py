@@ -1,14 +1,7 @@
 # -*- coding: utf-8 -*-
-from pathlib import Path
 from aiida import orm, common, engine
 from aiida.plugins import DataFactory
 import yaml
-import importlib
-
-with importlib.resources.path('aiida_flexpart.templates',
-                              'inversion_settings.yaml') as p:
-    with open(p, 'r') as fp:
-        inversion_settings = yaml.safe_load(fp)
 
 NetCDF = DataFactory('netcdf.data')
 
@@ -70,16 +63,13 @@ class Inversion(engine.CalcJob):
         codeinfo.code_uuid = self.inputs.code.uuid
         codeinfo.stdout_name = self.metadata.options.output_filename
         codeinfo.withmpi = self.inputs.metadata.options.withmpi
-
-        if self.inputs.inv_params.value:
-            pass
-        else:
-            with folder.open('inversion_settings.yaml', 'w') as f:
-                pass
+   
+        with folder.open('inversion_settings.yaml', 'w') as f:
+                _ = yaml.dump(self.inputs.inv_params.value, f)
 
         # Prepare a `CalcInfo` to be returned to the engine
         calcinfo = common.CalcInfo()
         calcinfo.codes_info = [codeinfo]
-        calcinfo.retrieve_list = ['aiida.out', '*.nc']
+        calcinfo.retrieve_list = ['aiida.out']
 
         return calcinfo

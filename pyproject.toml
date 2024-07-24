@@ -59,6 +59,7 @@ docs = [
 "flexpart.ifs" = "aiida_flexpart.calculations.flexpart_ifs:FlexpartIfsCalculation"
 "flexpart.post" = "aiida_flexpart.calculations.flexpart_post:PostProcessingCalculation"
 "collect.sensitivities" = "aiida_flexpart.calculations.collect_sens:CollectSensCalculation"
+"inversion.calc" = "aiida_flexpart.calculations.inversion:Inversion"
 
 [project.entry-points."aiida.parsers"]
 "flexpart.cosmo" = "aiida_flexpart.parsers.flexpart_cosmo:FlexpartCosmoParser"
