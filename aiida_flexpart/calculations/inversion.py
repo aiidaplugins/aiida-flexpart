@@ -65,7 +65,7 @@ class Inversion(engine.CalcJob):
         codeinfo.withmpi = self.inputs.metadata.options.withmpi
    
         with folder.open('inversion_settings.yaml', 'w') as f:
-                _ = yaml.dump(self.inputs.inv_params.value, f)
+                _ = yaml.dump(self.inputs.inv_params.get_dict(), f)
 
         # Prepare a `CalcInfo` to be returned to the engine
         calcinfo = common.CalcInfo()
