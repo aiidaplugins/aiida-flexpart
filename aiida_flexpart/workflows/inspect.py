@@ -26,11 +26,6 @@ def check(nc_file, version):
                 return False
     return True
 
-
-def validate_history(nc_file):
-    return True if "history" in nc_file.attributes["global_attributes"].keys() else None
-
-
 @calcfunction
 def store(remote_dir, file):
     with tempfile.TemporaryDirectory() as td:
@@ -53,10 +48,16 @@ def store(remote_dir, file):
             nc_dimensions=nc_dimensions,
         )
 
-        if validate_history(node) == None:
+        if "history" in node.attributes["global_attributes"].keys():
+            if check(node, "history"):
+                return node
+        elif "created" in node.attributes["global_attributes"].keys():
+            if check(node, "created"):
+                return node
+        else:
             return
-        elif check(node, "history"):
-            return node
+        
+
 
 
 class InspectWorkflow(WorkChain):
