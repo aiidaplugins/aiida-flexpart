@@ -67,10 +67,10 @@ class Inversion(engine.CalcJob):
         #create dict for yaml, add remotes by location
         remote_dict = {}
         for k,v in self.inputs.remotes.items():
-             if k.split("-")[0] in remote_dict.keys():
-                remote_dict[k.split("-")[0]].append(v.attributes["remote_path"]+'/'+k)
+             if k.split("_")[0] in remote_dict.keys():
+                remote_dict[k.split("_")[0]].append(v.attributes["remote_path"]+'/'+k)
              else:
-                remote_dict[k.split("-")[0]] = [v.attributes["remote_path"]+'/'+k]
+                remote_dict[k.split("_")[0]] = [v.attributes["remote_path"]+'/'+k]
 
         params_dict = self.inputs.inv_params.get_dict()
         for k,v in remote_dict.items():
