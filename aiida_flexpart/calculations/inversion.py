@@ -63,11 +63,28 @@ class Inversion(engine.CalcJob):
         codeinfo.code_uuid = self.inputs.code.uuid
         codeinfo.stdout_name = self.metadata.options.output_filename
         codeinfo.withmpi = self.inputs.metadata.options.withmpi
-   
-        with folder.open('inversion_settings.yaml', 'w') as f:
-                _ = yaml.dump(self.inputs.inv_params.get_dict(), f)
 
-        # Prepare a `CalcInfo` to be returned to the engine
+
+        #create dict for yaml, add remotes by location
+        remote_dict = {}
+        for k,v in self.inputs.remotes.items():
+             if k.split("_")[0] in remote_dict.keys():
+                remote_dict[k.split("_")[0]].append(v.attributes["remote_path"]+'/'+k)
+             else:
+                remote_dict[k.split("_")[0]] = [v.attributes["remote_path"]+'/'+k]
+
+        params_dict = self.inputs.inv_params.get_dict()
+        for k,v in remote_dict.items():
+            params_dict['sites'][k].update({'ft.fls':v})
+
+        #replace _ by . in dict
+        params_dict = {
+    key.replace("_", "."): value for key, value in params_dict.items()
+}
+
+        with folder.open('inversion_settings.yaml', 'w') as f:
+                _ = yaml.dump(params_dict, f)
+            
         calcinfo = common.CalcInfo()
         calcinfo.codes_info = [codeinfo]
         calcinfo.retrieve_list = ['aiida.out']
