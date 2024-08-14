@@ -64,6 +64,7 @@ class Inversion(engine.CalcJob):
         codeinfo.stdout_name = self.metadata.options.output_filename
         codeinfo.withmpi = self.inputs.metadata.options.withmpi
 
+
         #create dict for yaml, add remotes by location
         remote_dict = {}
         for k,v in self.inputs.remotes.items():
@@ -83,10 +84,9 @@ class Inversion(engine.CalcJob):
 
         with folder.open('inversion_settings.yaml', 'w') as f:
                 _ = yaml.dump(params_dict, f)
-
+            
         calcinfo = common.CalcInfo()
         calcinfo.codes_info = [codeinfo]
         calcinfo.retrieve_list = ['aiida.out']
 
         return calcinfo
-
