@@ -66,7 +66,8 @@ docs = [
 "flexpart.cosmo" = "aiida_flexpart.parsers.flexpart_cosmo:FlexpartCosmoParser"
 "flexpart.ifs" = "aiida_flexpart.parsers.flexpart_ifs:FlexpartIfsParser"
 "flexpart.post" = "aiida_flexpart.parsers.flexpart_post:FlexpartPostParser"
-"collect.sens" = "aiida_flexpart.parsers.collect_sens:CollectSensParser"
+"collect.sensitivities" = "aiida_flexpart.parsers.collect_sens:CollectSensParser"
+"inversion.calc" = "aiida_flexpart.parsers.inversion:InvesrionParser"
 
 [project.entry-points."aiida.workflows"]
 "flexpart.multi_dates" = "aiida_flexpart.workflows.multi_dates_workflow:FlexpartMultipleDatesWorkflow"

@@ -21,7 +21,7 @@ class Inversion(engine.CalcJob):
         spec.input('metadata.options.custom_scheduler_commands', valid_type=str, default='')
         spec.input('metadata.options.withmpi', valid_type=bool, default=False)
         spec.input('metadata.options.output_filename', valid_type=str, default='aiida.out', required=True)
-        #spec.input('metadata.options.parser_name', valid_type=str, default='collect.sens')
+        spec.input('metadata.options.parser_name', valid_type=str, default='inversion.calc')
 
         #Inputs
         spec.input_namespace('remotes', valid_type = NetCDF, required=True)
