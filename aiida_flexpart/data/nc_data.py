@@ -10,12 +10,16 @@ class NetCdfData(RemoteData):
         """
         Data plugin for Netcdf files.
         """
-        super().__init__(**kwargs)
+        super(NetCdfData,self).__init__()
         if filepath is not None:
             filename = os.path.basename(filepath)
             self.set_remote_path(remote_path)
             self.set_filename(filename)
             self.set_global_attributes(g_att, nc_dimensions)
+        if kwargs:
+            for k,v in kwargs.items():
+                self.base.attributes.set(k, v)
+
 
     def set_filename(self, val):
         self.base.attributes.set("filename", val)

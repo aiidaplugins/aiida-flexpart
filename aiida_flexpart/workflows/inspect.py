@@ -27,7 +27,7 @@ def check(nc_file, version):
     return True
 
 @calcfunction
-def store(remote_dir, file):
+def store(remote_dir, file, time_label, nc_type):
     with tempfile.TemporaryDirectory() as td:
         remote_path = Path(remote_dir.get_remote_path()) / file.value
         temp_path = Path(td) / file.value
@@ -46,6 +46,8 @@ def store(remote_dir, file):
             computer=remote_dir.computer,
             g_att=global_att,
             nc_dimensions=nc_dimensions,
+            time_label = time_label.value,
+            nc_type = nc_type.value
         )
 
         if "history" in node.attributes["global_attributes"].keys():
@@ -68,12 +70,13 @@ class InspectWorkflow(WorkChain):
         spec.input_namespace(
             "remotes_cs", valid_type=orm.RemoteStashFolderData, required=False
         )
+        spec.input('time_label', valid_type=orm.Str, required=False)
+        spec.input('nc_type', valid_type=orm.Str, required=False)
         spec.outputs.dynamic = True
         spec.outline(
             cls.fill_remote_data,
             cls.inspect,
         )
-
     def fill_remote_data(self):
         self.ctx.dict_remote_data = {}
         if "remotes" in self.inputs:
@@ -88,4 +91,4 @@ class InspectWorkflow(WorkChain):
         for _, i in self.ctx.dict_remote_data.items():
             for file in i.listdir():
                 if ".nc" in file:
-                    store(i, file)
+                    store(i, file, self.inputs.time_label, self.inputs.nc_type)
