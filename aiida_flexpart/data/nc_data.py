@@ -5,19 +5,25 @@ from aiida.orm import RemoteData
 class NetCdfData(RemoteData):
 
     def __init__(
-        self, filepath=None, remote_path=None, g_att=None, nc_dimensions=None, **kwargs
+        self, 
+        filepath=None,
+        remote_path=None,
+        g_att=None, 
+        nc_dimensions=None,
+        other = {},
+        **kwargs,
     ):
         """
         Data plugin for Netcdf files.
         """
-        super(NetCdfData,self).__init__()
+        super().__init__(**kwargs)
         if filepath is not None:
             filename = os.path.basename(filepath)
             self.set_remote_path(remote_path)
             self.set_filename(filename)
             self.set_global_attributes(g_att, nc_dimensions)
-        if kwargs:
-            for k,v in kwargs.items():
+        if other:
+            for k,v in other.items():
                 self.base.attributes.set(k, v)
 
 

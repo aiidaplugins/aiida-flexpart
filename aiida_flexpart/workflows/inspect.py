@@ -46,8 +46,10 @@ def store(remote_dir, file, time_label, nc_type):
             computer=remote_dir.computer,
             g_att=global_att,
             nc_dimensions=nc_dimensions,
-            time_label = time_label.value,
-            nc_type = nc_type.value
+            other = {
+                    'time_label' : time_label.value,
+                    'nc_type' : nc_type.value
+                    }
         )
 
         if "history" in node.attributes["global_attributes"].keys():
