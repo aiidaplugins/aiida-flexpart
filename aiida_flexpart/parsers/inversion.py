@@ -52,7 +52,7 @@ class InvesrionParser(Parser):
         with self.retrieved.open(output_filename, 'r') as handle:
             content = handle.read()
             output_node = SinglefileData(file=handle)
-            if 'CONGRATULATIONS' not in content:
+            if 'Congratulations' not in content:
                 self.out('output_file', output_node)
                 return ExitCode(1)
 
