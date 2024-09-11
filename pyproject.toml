@@ -73,6 +73,7 @@ docs = [
 "flexpart.multi_dates" = "aiida_flexpart.workflows.multi_dates_workflow:FlexpartMultipleDatesWorkflow"
 "flexpart.multi_workflow" = "aiida_flexpart.workflows.parent_workflow:ParentWorkflow"
 "inspect.workflow" = "aiida_flexpart.workflows.inspect:InspectWorkflow"
+"inversion.workflow" = "aiida_flexpart.workflows.inversion_workflow:InversionWorkflow"
 
 
 [tool.pylint.format]
