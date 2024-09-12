@@ -32,18 +32,24 @@ class InversionWorkflow(engine.WorkChain):
     def define(cls, spec):
         super().define(spec)
 
+        spec.input("inversion_code", valid_type=orm.AbstractCode)
+
         #extras
         spec.input('name', valid_type=str, non_db=True, required=False)
 
-        spec.input("inversion_code", valid_type=orm.AbstractCode)
-        spec.input_namespace('sens',valid_type=NetCDF,required=True,dynamic=True)
-        spec.input_namespace('observations',valid_type=NetCDF,required=True,dynamic=True)
         spec.input('inv_params',valid_type=orm.Dict,required=True)
 
-        spec.input('date_range',valid_type=orm.Str,required=True)
+        spec.input_namespace('remotes', valid_type = NetCDF, required=True)
+        spec.input_namespace('observations',valid_type=NetCDF,required=True)
 
+
+        spec.input('date_range',valid_type=orm.Str,required=True)
         spec.input('chunk',valid_type=orm.Str,required=True)
         spec.input('chunk_w',valid_type=orm.Str,required=True)
+
+        spec.expose_inputs(InversionCalculation,
+                           include=['metadata.options'],
+                           namespace='inversioncalc')
 
         spec.outputs.dynamic = True
 
@@ -54,30 +60,37 @@ class InversionWorkflow(engine.WorkChain):
             )
         
     def setup(self):
-        self.ctx.sens = self.inputs.sens
+        self.ctx.inv_params_dict = self.inputs.inv_params.get_dict()
+        self.ctx.inv_params = self.inputs.inv_params.get_dict()
+        self.ctx.inv_params.update({'chunk':self.inputs.chunk.value,
+                                    'chunk_w':self.inputs.chunk_w.value})
 
         if 'name' in self.inputs:
              self.node.base.extras.set(
                  self.inputs.name,{
-                    'inv_params':self.inputs.inv_params.get_dict(),
+                    'inv_params':self.ctx.inv_params,
                  })
+             
     def run_inv(self):
 
         builder = InversionCalculation.get_builder()
         builder.code = self.inputs.inversion_code
-        builder.remotes = self.ctx.sens
+        builder.remotes = self.inputs.remotes
         builder.observations = self.inputs.observations
-        builder.inv_params = self.inputs.inv_params
         builder.chunk = self.inputs.chunk
-        builder.chunk_w = self.inputs.chun_w
+        builder.chunk_w = self.inputs.chunk_w
 
         start = datetime.strptime(self.inputs.date_range.value[:10], '%Y-%m-%d')
         end = datetime.strptime(self.inputs.date_range.value[12:], '%Y-%m-%d')
         dates = split_chunk(start, end, self.inputs.chunk_w)
 
         for s,e in dates.items():
-            builder.start_date = s
-            builder.end_date = e
+            self.ctx.inv_params_dict.update({'dtm_start':s,
+                                            'dtm_end':e})
+            builder.start_date = orm.Str(s)
+            builder.end_date = orm.Str(e)
+            builder.inv_params = orm.Dict(self.ctx.inv_params_dict)
+            
             running = self.submit(builder)
             self.to_context(calculations=engine.append_(running))
 
