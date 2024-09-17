@@ -37,6 +37,7 @@ class CollectSensitivitiesCalculation(engine.CalcJob):
         spec.input_namespace('remote', valid_type=orm.RemoteStashFolderData, required=True)
 
         #EXTRA INPUTS
+        spec.input('name', valid_type=str, non_db=True, required=False)
         spec.input('model',valid_type = str,non_db=True, required = True)
         spec.input('outgrid',valid_type = str,non_db=True, required = True)
         spec.input('outgrid_n',valid_type = bool,non_db=True, required = True)
@@ -70,12 +71,17 @@ class CollectSensitivitiesCalculation(engine.CalcJob):
                                 'bs.path':path,
                                 'domain.str':self.inputs.outgrid,
                                 'nest':self.inputs.outgrid_n,
-                                'globals':{
+                                    })
+            params_dict['globals'].update({
                                         'met_model':self.inputs.model,
                                         'model_version':'FLEXPART '+ str_
-                                        }
-                                    })
+                                        })
+            
             _ = yaml.dump(params_dict, f)
+
+        if 'name' in self.inputs:
+            self.node.base.extras.set(
+                self.inputs.name, params_dict)
 
         # Prepare a `CalcInfo` to be returned to the engine
         calcinfo = common.CalcInfo()
