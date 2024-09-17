@@ -24,8 +24,10 @@ class Inversion(engine.CalcJob):
         spec.input('metadata.options.parser_name', valid_type=str, default='inversion.calc')
 
         #Inputs
-        spec.input_namespace('remotes', valid_type = NetCDF, required=True)
-        spec.input_namespace('observations', valid_type = NetCDF, required=True)
+        spec.input_namespace('remotes', valid_type = NetCDF, required=True,
+                             help = 'Dictionary of sensitivities as NetCDF objects')
+        spec.input_namespace('observations', valid_type = NetCDF, required=True,
+                             help = 'Dictionary of observations as NetCDF objects')
 
         spec.input('inv_params',valid_type = orm.Dict, required = True,
                    help = 'File containing inversion settings, either as R source file or yaml')
@@ -87,6 +89,8 @@ class Inversion(engine.CalcJob):
             
         calcinfo = common.CalcInfo()
         calcinfo.codes_info = [codeinfo]
-        calcinfo.retrieve_list = ['aiida.out']
+        calcinfo.retrieve_list = ['aiida.out',
+                                  params_dict['run.str']+'*/iterative/*/data/ELRIS*'
+                                  ]
 
         return calcinfo

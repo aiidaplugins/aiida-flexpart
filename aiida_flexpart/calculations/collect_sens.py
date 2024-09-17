@@ -70,8 +70,10 @@ class CollectSensitivitiesCalculation(engine.CalcJob):
                                 'bs.path':path,
                                 'domain.str':self.inputs.outgrid,
                                 'nest':self.inputs.outgrid_n,
-                                'met_model':self.inputs.model,
-                                'model_version':'FLEXPART '+ str_
+                                'globals':{
+                                        'met_model':self.inputs.model,
+                                        'model_version':'FLEXPART '+ str_
+                                        }
                                     })
             _ = yaml.dump(params_dict, f)
 
