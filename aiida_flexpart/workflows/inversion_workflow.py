@@ -79,6 +79,7 @@ class InversionWorkflow(engine.WorkChain):
         builder.observations = self.inputs.observations
         builder.chunk = self.inputs.chunk
         builder.chunk_w = self.inputs.chunk_w
+        builder.metadata.options = self.inputs.inversioncalc.metadata.options
 
         start = datetime.strptime(self.inputs.date_range.value[:10], '%Y-%m-%d')
         end = datetime.strptime(self.inputs.date_range.value[12:], '%Y-%m-%d')

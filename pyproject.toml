@@ -7,7 +7,7 @@ name = "aiida_flexpart"
 
 [project]
 name = "aiida-flexpart"
-version = "0.1.8"
+version = "0.1.9"
 readme = "README.md"
 license = {file = 'LICENSE'}
 description = "AiiDA plugin for the FLEXPART code (simulation of atmospheric transport processes)."
