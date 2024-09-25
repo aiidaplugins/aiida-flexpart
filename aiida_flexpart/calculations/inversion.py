@@ -18,6 +18,8 @@ class Inversion(engine.CalcJob):
             'num_machines': 1,
             'num_mpiprocs_per_machine': 1,
         }
+        
+        spec.input('metadata.options.max_wallclock_seconds', valid_type=int, default=1800)
         spec.input('metadata.options.custom_scheduler_commands', valid_type=str, default='')
         spec.input('metadata.options.withmpi', valid_type=bool, default=False)
         spec.input('metadata.options.output_filename', valid_type=str, default='aiida.out', required=True)
