@@ -2,26 +2,18 @@ from aiida import engine, plugins, orm
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
-def make_date_range(start:datetime, end:datetime, months:int, offset:int)->dict:
+def make_date_range(start:datetime, 
+                    end:datetime, 
+                    chunk:str,
+                    chunk_w:str)->dict:
+    
+    step = 1*(chunk=='month')+12*(chunk=='year')
     dates = {}
-    x = start - relativedelta(months=offset)
-    end += relativedelta(months=offset)
-    while x < end:
-        dates[datetime.strftime(x,'%Y-%m-%d')] = datetime.strftime(x+relativedelta(months=months),'%Y-%m-%d')
-        x += relativedelta(months=months)
+    while start < end:
+        dates[datetime.strftime(start-relativedelta(months=step*(chunk!=chunk_w)),'%Y-%m-%d')
+                               ] = datetime.strftime(start+relativedelta(months=step+step*(chunk!=chunk_w)),'%Y-%m-%d')
+        start += relativedelta(months=step)
     return dates
-
-def split_chunk(start,end,chunk):
-
-        if chunk =='year':
-            return make_date_range(start, end, 12,0)
-        elif chunk == '3year':
-            return make_date_range(start, end, 12,12)
-        elif chunk == 'month':
-            return make_date_range(start, end, 1,0)
-        else:
-            return make_date_range(start, end, 3,1)
-
 
 InversionCalculation = plugins.CalculationFactory("inversion.calc")
 NetCDF = plugins.DataFactory('netcdf.data')
@@ -83,7 +75,7 @@ class InversionWorkflow(engine.WorkChain):
 
         start = datetime.strptime(self.inputs.date_range.value[:10], '%Y-%m-%d')
         end = datetime.strptime(self.inputs.date_range.value[12:], '%Y-%m-%d')
-        dates = split_chunk(start, end, self.inputs.chunk_w)
+        dates = make_date_range(start, end, self.inputs.chunk, self.inputs.chunk_w)
 
         for s,e in dates.items():
             self.ctx.inv_params_dict.update({'dtm_start':s,
