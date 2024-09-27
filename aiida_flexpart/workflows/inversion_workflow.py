@@ -15,6 +15,15 @@ def make_date_range(start:datetime,
         start += relativedelta(months=step)
     return dates
 
+def transform(start:datetime, 
+             chunk:str,
+             chunk_w:str):
+    step = 1*(chunk=='month')+12*(chunk=='year')
+    dtm_start = start-relativedelta(months=step*(chunk!=chunk_w))
+    dtm_end = start+relativedelta(months=step+step*(chunk!=chunk_w))
+    return datetime.strftime(dtm_start,'%Y-%m-%d'),datetime.strftime(dtm_end,'%Y-%m-%d')
+
+
 InversionCalculation = plugins.CalculationFactory("inversion.calc")
 NetCDF = plugins.DataFactory('netcdf.data')
 
@@ -75,11 +84,15 @@ class InversionWorkflow(engine.WorkChain):
 
         start = datetime.strptime(self.inputs.date_range.value[:10], '%Y-%m-%d')
         end = datetime.strptime(self.inputs.date_range.value[12:], '%Y-%m-%d')
-        dates = make_date_range(start, end, self.inputs.chunk, self.inputs.chunk_w)
-
-        for s,e in dates.items():
-            self.ctx.inv_params_dict.update({'dtm_start':s,
-                                            'dtm_end':e})
+        dates = make_date_range(start, end, self.inputs.chunk, self.inputs.chunk)
+    
+        for (s,e) in dates.items():
+            
+            dtm_start,dtm_end = transform(datetime.strptime(s, '%Y-%m-%d'),
+                                          self.inputs.chunk, 
+                                          self.inputs.chunk_w)
+            self.ctx.inv_params_dict.update({'dtm_start':dtm_start,
+                                            'dtm_end':dtm_end})
             builder.start_date = orm.Str(s)
             builder.end_date = orm.Str(e)
             builder.inv_params = orm.Dict(self.ctx.inv_params_dict)
